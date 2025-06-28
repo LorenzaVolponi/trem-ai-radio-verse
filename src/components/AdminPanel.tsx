@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +25,7 @@ import {
   Cpu,
   HardDrive
 } from 'lucide-react';
+import VoiceCloningSystem from '@/components/VoiceCloningSystem';
 
 const AdminPanel = () => {
   const [aiSettings, setAiSettings] = useState({
@@ -93,6 +93,9 @@ const AdminPanel = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Voice Cloning System */}
+      <VoiceCloningSystem />
 
       {/* Controles de IA */}
       <Card className="glass-effect border-white/10">

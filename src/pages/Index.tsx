@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +20,8 @@ import {
   Settings,
   LogIn,
   Upload,
-  Mic2
+  Mic2,
+  Brain
 } from 'lucide-react';
 import AdvancedAudioPlayer from '@/components/AdvancedAudioPlayer';
 import MusicUpload from '@/components/MusicUpload';
@@ -29,6 +29,8 @@ import LiveStats from '@/components/LiveStats';
 import ProgramSchedule from '@/components/ProgramSchedule';
 import ChatInterface from '@/components/ChatInterface';
 import AdminPanel from '@/components/AdminPanel';
+import SunoIntegration from '@/components/SunoIntegration';
+import AIRadioEngine from '@/components/AIRadioEngine';
 
 const Index = () => {
   const [currentListeners, setCurrentListeners] = useState(1247);
@@ -135,10 +137,14 @@ const Index = () => {
 
             {/* Tabs de Conteúdo */}
             <Tabs defaultValue="now-playing" className="w-full">
-              <TabsList className="grid w-full grid-cols-5 glass-effect border border-white/10">
+              <TabsList className="grid w-full grid-cols-6 glass-effect border border-white/10">
                 <TabsTrigger value="now-playing" className="data-[state=active]:bg-radio-purple/30">
                   <Music className="w-4 h-4 mr-2" />
                   Tocando
+                </TabsTrigger>
+                <TabsTrigger value="suno" className="data-[state=active]:bg-radio-purple/30">
+                  <Zap className="w-4 h-4 mr-2" />
+                  Suno AI
                 </TabsTrigger>
                 <TabsTrigger value="upload" className="data-[state=active]:bg-radio-purple/30">
                   <Upload className="w-4 h-4 mr-2" />
@@ -148,9 +154,9 @@ const Index = () => {
                   <Calendar className="w-4 h-4 mr-2" />
                   Programação
                 </TabsTrigger>
-                <TabsTrigger value="stats" className="data-[state=active]:bg-radio-purple/30">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Estatísticas
+                <TabsTrigger value="ai-engine" className="data-[state=active]:bg-radio-purple/30">
+                  <Brain className="w-4 h-4 mr-2" />
+                  IA Engine
                 </TabsTrigger>
                 <TabsTrigger value="admin" className="data-[state=active]:bg-radio-purple/30">
                   <Settings className="w-4 h-4 mr-2" />
@@ -207,6 +213,10 @@ const Index = () => {
                 </Card>
               </TabsContent>
 
+              <TabsContent value="suno">
+                <SunoIntegration />
+              </TabsContent>
+
               <TabsContent value="upload">
                 {user ? (
                   <MusicUpload />
@@ -231,8 +241,24 @@ const Index = () => {
                 <ProgramSchedule />
               </TabsContent>
 
-              <TabsContent value="stats">
-                <LiveStats listeners={currentListeners} />
+              <TabsContent value="ai-engine">
+                {user ? (
+                  <AIRadioEngine />
+                ) : (
+                  <Card className="glass-effect border-white/10">
+                    <CardContent className="p-8 text-center">
+                      <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Acesso ao Motor de IA</h3>
+                      <p className="text-gray-400 mb-4">
+                        Faça login para acessar o sistema de IA autônomo da rádio.
+                      </p>
+                      <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
+                        <LogIn className="w-4 h-4 mr-2" />
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="admin">
