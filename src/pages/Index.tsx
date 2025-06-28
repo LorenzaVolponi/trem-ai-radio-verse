@@ -5,42 +5,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/components/auth/AuthContext';
 import { 
   Play, 
   Pause, 
-  Volume2, 
-  VolumeX, 
-  Heart, 
-  Share2, 
-  MessageCircle, 
   Users, 
   Radio, 
-  Mic,
   Zap,
   TrendingUp,
   Music,
   Clock,
   Calendar,
-  Settings
+  Settings,
+  LogIn,
+  Upload,
+  Mic2
 } from 'lucide-react';
-import AudioPlayer from '@/components/AudioPlayer';
+import AdvancedAudioPlayer from '@/components/AdvancedAudioPlayer';
+import MusicUpload from '@/components/MusicUpload';
 import LiveStats from '@/components/LiveStats';
 import ProgramSchedule from '@/components/ProgramSchedule';
 import ChatInterface from '@/components/ChatInterface';
 import AdminPanel from '@/components/AdminPanel';
 
 const Index = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [currentListeners, setCurrentListeners] = useState(1247);
-  const [currentTrack, setCurrentTrack] = useState({
-    title: "Melodias do Futuro",
-    artist: "Rádio Trem AI",
-    album: "Geração IA #001",
-    duration: "3:42",
-    currentTime: "1:23"
-  });
+  const { user, signOut, loading } = useAuth();
+  const navigate = useNavigate();
 
   // Simular atualização de ouvintes em tempo real
   useEffect(() => {
@@ -49,6 +42,24 @@ const Index = () => {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-radio-darker via-gray-900 to-radio-dark flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 radio-gradient rounded-full flex items-center justify-center animate-pulse-glow mx-auto mb-4">
+            <Radio className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-white">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-radio-darker via-gray-900 to-radio-dark text-white overflow-hidden">
@@ -86,10 +97,29 @@ const Index = () => {
                 <span className="text-xs text-gray-400">ouvintes</span>
               </div>
 
-              <Button variant="outline" size="sm" className="glass-effect border-radio-purple/50 hover:bg-radio-purple/20">
-                <Settings className="w-4 h-4 mr-2" />
-                Admin
-              </Button>
+              {user ? (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-300">Olá, {user.email?.split('@')[0]}</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleSignOut}
+                    className="glass-effect border-radio-purple/50 hover:bg-radio-purple/20"
+                  >
+                    Sair
+                  </Button>
+                </div>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate('/auth')}
+                  className="glass-effect border-radio-purple/50 hover:bg-radio-purple/20"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Entrar
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -101,18 +131,18 @@ const Index = () => {
           
           {/* Player Principal */}
           <div className="lg:col-span-2 space-y-6">
-            <AudioPlayer 
-              currentTrack={currentTrack}
-              isPlaying={isPlaying}
-              onPlayPause={() => setIsPlaying(!isPlaying)}
-            />
+            <AdvancedAudioPlayer isLive={true} />
 
             {/* Tabs de Conteúdo */}
             <Tabs defaultValue="now-playing" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 glass-effect border border-white/10">
+              <TabsList className="grid w-full grid-cols-5 glass-effect border border-white/10">
                 <TabsTrigger value="now-playing" className="data-[state=active]:bg-radio-purple/30">
                   <Music className="w-4 h-4 mr-2" />
-                  Tocando Agora
+                  Tocando
+                </TabsTrigger>
+                <TabsTrigger value="upload" className="data-[state=active]:bg-radio-purple/30">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload
                 </TabsTrigger>
                 <TabsTrigger value="schedule" className="data-[state=active]:bg-radio-purple/30">
                   <Calendar className="w-4 h-4 mr-2" />
@@ -132,27 +162,30 @@ const Index = () => {
                 <Card className="glass-effect border-white/10">
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
-                      <Mic className="w-5 h-5 text-radio-purple" />
-                      <span>Informações da Faixa</span>
+                      <Mic2 className="w-5 h-5 text-radio-purple" />
+                      <span>Informações da Transmissão</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-400">Título</p>
-                        <p className="font-medium">{currentTrack.title}</p>
+                        <p className="text-sm text-gray-400">Status</p>
+                        <p className="font-medium flex items-center">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                          Transmitindo ao vivo
+                        </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-400">Artista</p>
-                        <p className="font-medium">{currentTrack.artist}</p>
+                        <p className="text-sm text-gray-400">Qualidade</p>
+                        <p className="font-medium">320kbps Stereo</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-400">Álbum</p>
-                        <p className="font-medium">{currentTrack.album}</p>
+                        <p className="text-sm text-gray-400">Latência</p>
+                        <p className="font-medium">~2.3s</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-400">Duração</p>
-                        <p className="font-medium">{currentTrack.duration}</p>
+                        <p className="text-sm text-gray-400">Uptime</p>
+                        <p className="font-medium">24h 7d</p>
                       </div>
                     </div>
                     
@@ -164,14 +197,34 @@ const Index = () => {
                         IA Gerada
                       </Badge>
                       <Badge variant="secondary" className="bg-radio-cyan/20 text-radio-cyan border-radio-cyan/30">
-                        Instrumental
+                        Transmissão Contínua
                       </Badge>
                       <Badge variant="secondary" className="bg-radio-green/20 text-radio-green border-radio-green/30">
-                        Original
+                        Automática
                       </Badge>
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="upload">
+                {user ? (
+                  <MusicUpload />
+                ) : (
+                  <Card className="glass-effect border-white/10">
+                    <CardContent className="p-8 text-center">
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Faça login para enviar músicas</h3>
+                      <p className="text-gray-400 mb-4">
+                        Conecte-se para fazer upload de suas músicas e contribuir com a programação da rádio.
+                      </p>
+                      <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
+                        <LogIn className="w-4 h-4 mr-2" />
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="schedule">
@@ -183,7 +236,23 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="admin">
-                <AdminPanel />
+                {user ? (
+                  <AdminPanel />
+                ) : (
+                  <Card className="glass-effect border-white/10">
+                    <CardContent className="p-8 text-center">
+                      <Settings className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Acesso restrito</h3>
+                      <p className="text-gray-400 mb-4">
+                        Faça login para acessar o painel administrativo.
+                      </p>
+                      <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
+                        <LogIn className="w-4 h-4 mr-2" />
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
             </Tabs>
           </div>
@@ -197,17 +266,27 @@ const Index = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Clock className="w-5 h-5 text-radio-cyan" />
-                  <span>Próximas Faixas</span>
+                  <span>Fila de Reprodução</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {[
-                  { time: "14:32", title: "Voz do Amanhã", artist: "IA Vocal", duration: "4:15" },
+                  { time: "Agora", title: "Voz do Amanhã", artist: "IA Vocal", duration: "4:15", isLive: true },
                   { time: "14:36", title: "Notícias Flash", artist: "Locução IA", duration: "2:30" },
-                  { time: "14:39", title: "Batida Cósmica", artist: "Gerador Musical", duration: "3:28" }
+                  { time: "14:39", title: "Batida Cósmica", artist: "Gerador Musical", duration: "3:28" },
+                  { time: "14:42", title: "Melodia Sintética", artist: "AI Composer", duration: "3:45" }
                 ].map((track, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                    <div className="text-xs text-gray-400 w-12">{track.time}</div>
+                  <div key={index} className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                    track.isLive ? 'bg-radio-purple/20 border border-radio-purple/30' : 'bg-white/5 hover:bg-white/10'
+                  }`}>
+                    <div className="text-xs text-gray-400 w-12">
+                      {track.isLive ? (
+                        <div className="flex items-center">
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-1"></div>
+                          AO VIVO
+                        </div>
+                      ) : track.time}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{track.title}</p>
                       <p className="text-xs text-gray-400 truncate">{track.artist}</p>
@@ -240,6 +319,10 @@ const Index = () => {
                   <span className="text-sm text-gray-400">Faixas Tocadas</span>
                   <span className="text-sm font-medium text-radio-purple">156</span>
                 </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-400">Músicas IA</span>
+                  <span className="text-sm font-medium text-radio-green">78%</span>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -261,18 +344,20 @@ const Index = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                <Heart className="w-4 h-4 mr-2" />
-                Favoritar
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                <Share2 className="w-4 h-4 mr-2" />
-                Compartilhar
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Feedback
-              </Button>
+              {!user && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => navigate('/auth')}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Entrar
+                </Button>
+              )}
+              <p className="text-xs text-gray-500">
+                Sistema de Radio AI completo com upload, streaming e IA
+              </p>
             </div>
           </div>
         </div>

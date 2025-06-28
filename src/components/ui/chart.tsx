@@ -132,13 +132,13 @@ const ChartTooltipContent = React.forwardRef<
   ) => {
     const { config } = useChart()
 
-    const payload = propPayload as Array<{
+    const payload = (propPayload as Array<{
       dataKey?: string
       name?: string
       value?: number
       payload?: any
       color?: string
-    }> || []
+    }>) || []
 
     const label = propLabel
 
@@ -284,7 +284,7 @@ const ChartLegendContent = React.forwardRef<
     { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },
     ref
   ) => {
-    const { config } = useChar()
+    const { config } = useChart()
 
     if (!payload?.length) {
       return null
