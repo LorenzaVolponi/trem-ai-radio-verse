@@ -103,24 +103,36 @@ const ChartTooltip = RechartsPrimitive.Tooltip
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-    React.ComponentProps<"div"> & {
-      hideLabel?: boolean
-      hideIndicator?: boolean
-      indicator?: "line" | "dot" | "dashed"
-      nameKey?: string
-      labelKey?: string
-    }
+  React.ComponentProps<"div"> & {
+    active?: boolean
+    payload?: Array<{
+      dataKey?: string
+      name?: string
+      value?: number
+      payload?: any
+      color?: string
+    }>
+    label?: any
+    hideLabel?: boolean
+    hideIndicator?: boolean
+    indicator?: "line" | "dot" | "dashed"
+    nameKey?: string
+    labelKey?: string
+    labelFormatter?: (value: any, payload: any) => React.ReactNode
+    formatter?: (value: any, name: any, props: any, index: any, payload: any) => React.ReactNode
+    color?: string
+    labelClassName?: string
+  }
 >(
   (
     {
       active,
-      payload: propPayload,
+      payload,
       className,
       indicator = "dot",
       hideLabel = false,
       hideIndicator = false,
-      label: propLabel,
+      label,
       labelFormatter,
       labelClassName,
       formatter,
@@ -131,16 +143,6 @@ const ChartTooltipContent = React.forwardRef<
     ref
   ) => {
     const { config } = useChart()
-
-    const payload = (propPayload as Array<{
-      dataKey?: string
-      name?: string
-      value?: number
-      payload?: any
-      color?: string
-    }>) || []
-
-    const label = propLabel
 
     const tooltipLabel = React.useMemo(() => {
       if (hideLabel || !payload?.length) {
