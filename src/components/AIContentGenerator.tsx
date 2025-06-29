@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,18 +60,7 @@ const AIContentGenerator = () => {
 
   const { toast } = useToast();
 
-  // Simulate content generation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        generateAutomaticContent();
-      }
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const generateAutomaticContent = () => {
+  const generateAutomaticContent = useCallback(() => {
     const contentTypes = ['voice', 'music', 'script'] as const;
     const type = contentTypes[Math.floor(Math.random() * contentTypes.length)];
     
@@ -85,7 +74,18 @@ const AIContentGenerator = () => {
     };
 
     setGeneratedContent(prev => [newContent, ...prev.slice(0, 9)]);
-  };
+  }, []);
+
+  // Simulate content generation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (Math.random() > 0.7) {
+        generateAutomaticContent();
+      }
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [generateAutomaticContent]);
 
   const getContentTitle = (type: string) => {
     const titles = {

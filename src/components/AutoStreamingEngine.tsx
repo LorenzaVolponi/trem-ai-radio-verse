@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,12 +66,20 @@ const AutoStreamingEngine = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
 
-  // Auto-start streaming when component mounts
+  const startAutoStreaming = useCallback(() => {
+    setStreamState(prev => ({ ...prev, isLive: true }));
+    toast({
+      title: "Transmissão Iniciada Automaticamente",
+      description: "Sistema autogerenciável ativo 24/7",
+    });
+  }, [toast]);
+
+  // Auto-start streaming when component mounts or auto mode changes
   useEffect(() => {
     if (streamState.autoMode) {
       startAutoStreaming();
     }
-  }, []);
+  }, [streamState.autoMode, startAutoStreaming]);
 
   // Simulate real-time metrics
   useEffect(() => {
@@ -100,20 +108,13 @@ const AutoStreamingEngine = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const startAutoStreaming = () => {
-    setStreamState(prev => ({ ...prev, isLive: true }));
-    toast({
-      title: "Transmissão Iniciada Automaticamente",
-      description: "Sistema autogerenciável ativo 24/7",
-    });
-  };
 
-  const toggleAutoMode = () => {
+  const toggleAutoMode = useCallback(() => {
     setStreamState(prev => ({ ...prev, autoMode: !prev.autoMode }));
     if (!streamState.autoMode) {
       startAutoStreaming();
     }
-  };
+  }, [streamState.autoMode, startAutoStreaming]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
