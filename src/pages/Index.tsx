@@ -6,7 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/components/auth/AuthContext';
+import { useAuth as useSupabaseAuth } from '@/components/auth/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Play, 
   Pause, 
@@ -29,7 +30,9 @@ import {
   BarChart3,
   Cog,
   Headphones,
-  Globe
+  Globe,
+  Wifi,
+  Server
 } from 'lucide-react';
 import AdvancedAudioPlayer from '@/components/AdvancedAudioPlayer';
 import MusicUpload from '@/components/MusicUpload';
@@ -45,6 +48,8 @@ import SEOOptimizer from '@/components/SEOOptimizer';
 import AdvancedAudioEngine from '@/components/AdvancedAudioEngine';
 import ProgramScheduler from '@/components/ProgramScheduler';
 import AdvancedAnalytics from '@/components/AdvancedAnalytics';
+import AdminLogin from '@/components/AdminLogin';
+import RadioDashboard from '@/components/RadioDashboard';
 
 const Index = () => {
   const [currentListeners, setCurrentListeners] = useState(2847);
@@ -55,7 +60,8 @@ const Index = () => {
     musicGeneration: 'generating'
   });
   
-  const { user, signOut, loading } = useAuth();
+  const { user: supabaseUser, signOut: supabaseSignOut, loading: supabaseLoading } = useSupabaseAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   // Real-time listeners and system monitoring
@@ -72,12 +78,22 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleSupabaseSignOut = async () => {
+    await supabaseSignOut();
     navigate('/auth');
   };
 
-  if (loading) {
+  // Show admin dashboard if authenticated
+  if (isAuthenticated) {
+    return <RadioDashboard />;
+  }
+
+  // Show admin login if not authenticated
+  if (window.location.search.includes('admin')) {
+    return <AdminLogin />;
+  }
+
+  if (supabaseLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-radio-darker via-gray-900 to-radio-dark flex items-center justify-center">
         <div className="text-center">
@@ -113,7 +129,7 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold gradient-text">Rádio Trem AI</h1>
-                <p className="text-sm text-gray-400">Sistema Autogerenciável de Rádio IA - Nível Mundial</p>
+                <p className="text-sm text-gray-400">Sistema Autogerenciável de Rádio IA - Transmissão Automática</p>
               </div>
             </div>
 
@@ -126,7 +142,7 @@ const Index = () => {
                 </div>
                 <div className="flex items-center space-x-1 px-2 py-1 glass-effect rounded-full">
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-gray-400">Streaming</span>
+                  <span className="text-xs text-gray-400">Auto Stream</span>
                 </div>
                 <div className="flex items-center space-x-1 px-2 py-1 glass-effect rounded-full">
                   <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
@@ -135,8 +151,8 @@ const Index = () => {
               </div>
               
               <div className="flex items-center space-x-2 px-4 py-2 glass-effect rounded-full">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">AO VIVO 24/7</span>
+                <Wifi className="w-4 h-4 text-red-500" />
+                <span className="text-sm font-medium">TRANSMITINDO AUTOMATICAMENTE</span>
               </div>
               
               <div className="flex items-center space-x-2 px-4 py-2 glass-effect rounded-full">
@@ -145,36 +161,62 @@ const Index = () => {
                 <span className="text-xs text-gray-400">ouvintes</span>
               </div>
 
-              {user ? (
+              {supabaseUser ? (
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline" className="border-radio-purple/50 text-radio-purple">
-                    Admin
+                    Usuário
                   </Badge>
-                  <span className="text-sm text-gray-300">Olá, {user.email?.split('@')[0]}</span>
+                  <span className="text-sm text-gray-300">Olá, {supabaseUser.email?.split('@')[0]}</span>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={handleSignOut}
+                    onClick={handleSupabaseSignOut}
                     className="glass-effect border-radio-purple/50 hover:bg-radio-purple/20"
                   >
                     Sair
                   </Button>
                 </div>
               ) : (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate('/auth')}
-                  className="glass-effect border-radio-purple/50 hover:bg-radio-purple/20"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Entrar
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => navigate('/auth')}
+                    className="glass-effect border-radio-purple/50 hover:bg-radio-purple/20"
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Entrar
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => window.location.href = '/?admin'}
+                    className="glass-effect border-red-500/50 hover:bg-red-500/20 text-red-400"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Admin
+                  </Button>
+                </div>
               )}
             </div>
           </div>
         </div>
       </header>
+
+      {/* Auto-Start Notification */}
+      <div className="container mx-auto px-6 py-4 relative z-10">
+        <Card className="glass-effect border-green-500/20 bg-green-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <div>
+                <p className="text-green-400 font-medium">Sistema Iniciado Automaticamente</p>
+                <p className="text-sm text-gray-400">A rádio está transmitindo ao vivo sem necessidade de intervenção manual</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Main Content with Enhanced Tabs */}
       <main className="container mx-auto px-6 py-8 relative z-10">
@@ -183,6 +225,64 @@ const Index = () => {
           {/* Enhanced Player and Content Area */}
           <div className="lg:col-span-2 space-y-6">
             <AdvancedAudioPlayer isLive={true} />
+
+            {/* Enhanced Auto-Streaming Info */}
+            <Card className="glass-effect border-white/10">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Radio className="w-5 h-5 text-radio-purple" />
+                  <span>Transmissão Automática Ativa</span>
+                  <Badge variant="outline" className="border-green-500/50 text-green-400">
+                    <Wifi className="w-3 h-3 mr-1" />
+                    Sistema Autogerenciável
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-400">Status</p>
+                    <p className="font-medium flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                      Transmitindo 24/7
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Qualidade</p>
+                    <p className="font-medium">Ultra HD 320kbps</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Latência</p>
+                    <p className="font-medium text-green-400">~78ms</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Uptime</p>
+                    <p className="font-medium">99.98%</p>
+                  </div>
+                </div>
+                
+                <Separator className="bg-white/10" />
+                
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="bg-radio-purple/20 text-radio-purple border-radio-purple/30">
+                    <Brain className="w-3 h-3 mr-1" />
+                    IA Autogerenciável
+                  </Badge>
+                  <Badge variant="secondary" className="bg-radio-cyan/20 text-radio-cyan border-radio-cyan/30">
+                    <Wifi className="w-3 h-3 mr-1" />
+                    Início Automático
+                  </Badge>
+                  <Badge variant="secondary" className="bg-radio-green/20 text-radio-green border-radio-green/30">
+                    <Server className="w-3 h-3 mr-1" />
+                    Sem Intervenção Manual
+                  </Badge>
+                  <Badge variant="secondary" className="bg-radio-pink/20 text-radio-pink border-radio-pink/30">
+                    <Mic2 className="w-3 h-3 mr-1" />
+                    Voz Clonada
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Advanced Tabs System */}
             <Tabs defaultValue="now-playing" className="w-full">
@@ -225,7 +325,7 @@ const Index = () => {
                 </TabsTrigger>
                 <TabsTrigger value="admin" className="data-[state=active]:bg-radio-purple/30">
                   <Cog className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Admin</span>
+                  <span className="hidden sm:inline">Público</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -302,7 +402,7 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="upload">
-                {user ? (
+                {supabaseUser ? (
                   <MusicUpload />
                 ) : (
                   <Card className="glass-effect border-white/10">
@@ -322,7 +422,7 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="playlist">
-                {user ? (
+                {supabaseUser ? (
                   <AdvancedPlaylist />
                 ) : (
                   <Card className="glass-effect border-white/10">
@@ -342,7 +442,7 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="streaming">
-                {user ? (
+                {supabaseUser ? (
                   <StreamingEngine />
                 ) : (
                   <Card className="glass-effect border-white/10">
@@ -362,7 +462,7 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="ai-engine">
-                {user ? (
+                {supabaseUser ? (
                   <AIRadioEngine />
                 ) : (
                   <Card className="glass-effect border-white/10">
@@ -382,23 +482,22 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="admin">
-                {user ? (
-                  <AdminPanel />
-                ) : (
-                  <Card className="glass-effect border-white/10">
-                    <CardContent className="p-8 text-center">
-                      <Settings className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Painel Administrativo</h3>
-                      <p className="text-gray-400 mb-4">
-                        Faça login para acessar controles administrativos completos.
-                      </p>
-                      <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
-                        <LogIn className="w-4 h-4 mr-2" />
-                        Fazer Login
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
+                <Card className="glass-effect border-white/10">
+                  <CardContent className="p-8 text-center">
+                    <Settings className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Acesso Administrativo</h3>
+                    <p className="text-gray-400 mb-4">
+                      Para acessar o painel administrativo completo, use as credenciais admin007.
+                    </p>
+                    <Button 
+                      onClick={() => window.location.href = '/?admin'} 
+                      className="bg-red-500 hover:bg-red-600 text-white"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Painel Admin
+                    </Button>
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
           </div>
@@ -550,27 +649,38 @@ const Index = () => {
                   <Brain className="w-3 h-3 mr-1" />
                   100% IA
                 </Badge>
-                <Badge variant="outline" className="border-radio-green/50 text-radio-green">
-                  <Globe className="w-3 h-3 mr-1" />
-                  Mundial
+                <Badge variant="outline" className="border-radio-green/50 text-green-400">
+                  <Wifi className="w-3 h-3 mr-1" />
+                  Auto-Start
                 </Badge>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              {!user && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => navigate('/auth')}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Entrar
-                </Button>
+              {!supabaseUser && (
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => navigate('/auth')}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Entrar
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => window.location.href = '/?admin'}
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Admin
+                  </Button>
+                </div>
               )}
               <p className="text-xs text-gray-500">
-                Sistema de Radio IA Autogerenciável - TOP 1 Mundial
+                Sistema de Radio IA Autogerenciável - Transmissão Automática 24/7
               </p>
             </div>
           </div>
