@@ -1,19 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const playlist = [
-  {
-    title: 'Sample Track 1',
-    url: 'https://file-examples.com/wp-content/storage/fe6a3fb2e4886c02f68da66/2017/11/file_example_MP3_700KB.mp3'
-  },
-  {
-    title: 'Sample Track 2',
-    url: 'https://file-examples.com/wp-content/storage/fe6a3fb2e4886c02f68da66/2017/11/file_example_MP3_1MG.mp3'
-  }
-];
+// Public Icecast stream used as default source.
+// Replace with your own stream or Suno-generated playlist.
+const STREAM_URL = 'https://icecast.radiofrance.fr/fip-midfi.mp3';
 
 const AutoPlayRadio: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -22,27 +14,38 @@ const AutoPlayRadio: React.FC = () => {
 
     const play = async () => {
       try {
+        audio.muted = true;
         await audio.play();
         setFailed(false);
+        setTimeout(() => {
+          if (audio) audio.muted = false;
+        }, 500);
       } catch (err) {
         setFailed(true);
+        const clickHandler = async () => {
+          try {
+            await audio.play();
+            setFailed(false);
+            document.removeEventListener('click', clickHandler);
+          } catch (_) {
+            /* ignored */
+          }
+        };
+        document.addEventListener('click', clickHandler);
       }
     };
 
-    audio.src = playlist[currentIndex].url;
+    audio.src = STREAM_URL;
     play();
-  }, [currentIndex]);
-
-  const handleEnded = () => {
-    setCurrentIndex((i) => (i + 1) % playlist.length);
-  };
+  }, []);
 
   const handleStartClick = async () => {
-    if (audioRef.current) {
+    const audio = audioRef.current;
+    if (audio) {
       try {
-        await audioRef.current.play();
+        await audio.play();
         setFailed(false);
-      } catch (err) {
+      } catch (_) {
         /* ignore */
       }
     }
@@ -50,7 +53,7 @@ const AutoPlayRadio: React.FC = () => {
 
   return (
     <div className="sr-only">
-      <audio ref={audioRef} onEnded={handleEnded} />
+      <audio ref={audioRef} />
       {failed && (
         <button onClick={handleStartClick}>Clique para iniciar o áudio</button>
       )}
