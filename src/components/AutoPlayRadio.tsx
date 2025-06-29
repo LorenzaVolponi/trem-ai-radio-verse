@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 const TRENDING_URL = '/trending';
+const FALLBACK_STREAM = 'https://icecast.radiofrance.fr/fip-midfi.mp3';
 
 const AutoPlayRadio: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -17,11 +18,13 @@ const AutoPlayRadio: React.FC = () => {
       try {
         const resp = await fetch(TRENDING_URL);
         const data = await resp.json();
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setPlaylist(data);
+        } else {
+          setPlaylist([FALLBACK_STREAM]);
         }
       } catch (_) {
-        setPlaylist([]);
+        setPlaylist([FALLBACK_STREAM]);
       }
     };
 

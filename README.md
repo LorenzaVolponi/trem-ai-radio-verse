@@ -108,8 +108,9 @@ environment variable with a valid session cookie from
 Adjust `backend/main.py` with your own credentials and prompts as needed.
 
 The backend exposes `/trending` which returns a list of audio URLs from
-Suno's trending page. The frontend automatically fetches these URLs for
-seamless playback on page load.
+Suno's trending page. If Suno is unavailable it falls back to a public
+Icecast stream. The frontend automatically fetches these URLs for
+seamless autoplay on page load.
 
 ## Legal & Open Source Notice
 

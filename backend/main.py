@@ -63,7 +63,9 @@ def list_trending() -> JSONResponse:
         return JSONResponse(content=tracks)
     try:
         songs = suno_client.get_songs()
+        audio_urls = [song.audio_url for song in songs if song.audio_url]
+        if audio_urls:
+            return JSONResponse(content=audio_urls)
     except Exception:
-        return JSONResponse(content=tracks)
-    audio_urls = [song.audio_url for song in songs if song.audio_url]
-    return JSONResponse(content=audio_urls)
+        pass
+    return JSONResponse(content=tracks)
