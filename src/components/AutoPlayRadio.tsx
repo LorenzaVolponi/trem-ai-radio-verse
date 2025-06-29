@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-// Public Icecast stream used as default source.
-// Replace with your own stream or Suno-generated playlist.
-const STREAM_URL = 'https://icecast.radiofrance.fr/fip-midfi.mp3';
+// Backend endpoint that generates a song via Suno and streams it.
+const STREAM_URL = '/generate';
 
 const AutoPlayRadio: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);

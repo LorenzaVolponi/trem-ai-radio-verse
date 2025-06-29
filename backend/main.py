@@ -1,13 +1,23 @@
 from fastapi import FastAPI, BackgroundTasks
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, RedirectResponse
 import subprocess
 from typing import List
+import os
+import requests
+from suno import Suno
 
 app = FastAPI(title="Radio Backend")
 
 tracks = [
     "https://icecast.radiofrance.fr/fip-midfi.mp3"
 ]
+
+# Optional Suno integration
+cookie = os.getenv("SUNO_COOKIE", "")
+try:
+    suno_client = Suno(cookie=cookie) if cookie else None
+except Exception:
+    suno_client = None
 
 @app.get("/tracks", response_model=List[str])
 def list_tracks():
@@ -30,3 +40,17 @@ def start_stream(background_tasks: BackgroundTasks):
     ]
     background_tasks.add_task(subprocess.Popen, cmd)
     return {"status": "started"}
+
+
+@app.get("/generate")
+def generate_and_stream(prompt: str = "uplifting pop track"):
+    """Generate a song using Suno and stream the audio."""
+    if not suno_client:
+        # Suno unavailable, redirect to fallback stream
+        return RedirectResponse(url=tracks[0])
+    try:
+        song = suno_client.songs.generate(prompt)[0]
+    except Exception:
+        return RedirectResponse(url=tracks[0])
+    audio_resp = requests.get(song.audio_url, stream=True)
+    return StreamingResponse(audio_resp.iter_content(chunk_size=4096), media_type="audio/mpeg")

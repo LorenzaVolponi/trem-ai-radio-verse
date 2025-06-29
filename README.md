@@ -100,8 +100,11 @@ Run it locally with:
 cd backend
 uvicorn main:app
 ```
+Install the optional `suno-api` dependency to enable automatic song
+generation and set the `SUNO_COOKIE` environment variable with a valid
+session cookie from [suno.com](https://suno.com).
 
-Adjust `backend/main.py` with your own Suno-generated tracks and credentials.
+Adjust `backend/main.py` with your own credentials and prompts as needed.
 
 ## Legal & Open Source Notice
 
