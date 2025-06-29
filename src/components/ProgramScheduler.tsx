@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
+type ProgramType = 'live' | 'ai-generated' | 'music-only';
+
 interface Program {
   id: string;
   name: string;
@@ -31,7 +33,7 @@ interface Program {
   startTime: string;
   duration: number;
   genre: string;
-  type: 'live' | 'ai-generated' | 'music-only';
+  type: ProgramType;
   status: 'active' | 'scheduled' | 'completed';
   listeners?: number;
   engagement?: number;
@@ -90,7 +92,14 @@ const ProgramScheduler = () => {
     }
   ]);
 
-  const [newProgram, setNewProgram] = useState({
+  const [newProgram, setNewProgram] = useState<{
+    name: string;
+    host: string;
+    startTime: string;
+    duration: number;
+    genre: string;
+    type: ProgramType;
+  }>({
     name: '',
     host: '',
     startTime: '',
@@ -361,7 +370,10 @@ const ProgramScheduler = () => {
             
             <select
               value={newProgram.type}
-              onChange={(e) => setNewProgram({...newProgram, type: e.target.value as any})}
+              onChange={(e) => setNewProgram({
+                ...newProgram,
+                type: e.target.value as ProgramType,
+              })}
               className="glass-effect border-white/20 bg-white/5 text-white rounded-md px-3 py-2"
             >
               <option value="ai-generated">IA Generated</option>

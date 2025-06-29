@@ -123,10 +123,11 @@ const MusicUpload = () => {
       setAudioFile(null);
       setCoverFile(null);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
