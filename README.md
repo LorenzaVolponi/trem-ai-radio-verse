@@ -89,3 +89,7 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Legal & Open Source Notice
+
+See [disclaimers.md](./disclaimers.md) for details about third-party tools and licensing. Usage of Suno-generated music must comply with [Suno's Terms of Service](https://suno.com/terms) and [Privacy Policy](https://suno.com/privacy).
