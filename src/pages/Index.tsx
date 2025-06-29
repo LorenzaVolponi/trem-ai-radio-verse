@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,7 +89,7 @@ const Index = () => {
     return <RadioDashboard />;
   }
 
-  // Show admin login if not authenticated
+  // Show admin login if not authenticated and admin parameter is present
   if (window.location.search.includes('admin')) {
     return <AdminLogin />;
   }
@@ -224,7 +225,31 @@ const Index = () => {
           
           {/* Enhanced Player and Content Area */}
           <div className="lg:col-span-2 space-y-6">
-            <AdvancedAudioPlayer isLive={true} />
+            <Card className="glass-effect border-white/10">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 radio-gradient rounded-full flex items-center justify-center animate-pulse-glow mx-auto mb-4">
+                    <Radio className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-2">🎵 Rádio Trem AI Tocando Agora 🎵</h2>
+                  <p className="text-lg text-radio-purple mb-2">Voz do Amanhã Premium - IA Vocal Elite</p>
+                  <div className="flex items-center justify-center space-x-4 mb-4">
+                    <Badge variant="outline" className="border-green-500/50 text-green-400">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                      AO VIVO 24/7
+                    </Badge>
+                    <Badge variant="outline" className="border-radio-purple/50 text-radio-purple">
+                      <Brain className="w-3 h-3 mr-1" />
+                      100% IA
+                    </Badge>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-2 mb-4">
+                    <div className="bg-gradient-to-r from-radio-purple to-radio-cyan h-2 rounded-full animate-pulse" style={{width: '65%'}}></div>
+                  </div>
+                  <p className="text-sm text-gray-400">Sistema autogerenciável transmitindo música e voz gerada por IA</p>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Enhanced Auto-Streaming Info */}
             <Card className="glass-effect border-white/10">
@@ -283,229 +308,10 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Advanced Tabs System */}
-            <Tabs defaultValue="now-playing" className="w-full">
-              <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 glass-effect border border-white/10">
-                <TabsTrigger value="now-playing" className="data-[state=active]:bg-radio-purple/30">
-                  <Music className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Tocando</span>
-                </TabsTrigger>
-                <TabsTrigger value="audio-engine" className="data-[state=active]:bg-radio-purple/30">
-                  <Radio className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Engine</span>
-                </TabsTrigger>
-                <TabsTrigger value="scheduler" className="data-[state=active]:bg-radio-purple/30">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">24/7</span>
-                </TabsTrigger>
-                <TabsTrigger value="analytics" className="data-[state=active]:bg-radio-purple/30">
-                  <BarChart3 className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Analytics</span>
-                </TabsTrigger>
-                <TabsTrigger value="suno" className="data-[state=active]:bg-radio-purple/30">
-                  <Zap className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Suno</span>
-                </TabsTrigger>
-                <TabsTrigger value="upload" className="data-[state=active]:bg-radio-purple/30">
-                  <Upload className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Upload</span>
-                </TabsTrigger>
-                <TabsTrigger value="playlist" className="data-[state=active]:bg-radio-purple/30">
-                  <Volume2 className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Playlist</span>
-                </TabsTrigger>
-                <TabsTrigger value="streaming" className="data-[state=active]:bg-radio-purple/30">
-                  <Activity className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Stream</span>
-                </TabsTrigger>
-                <TabsTrigger value="ai-engine" className="data-[state=active]:bg-radio-purple/30">
-                  <Brain className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">IA</span>
-                </TabsTrigger>
-                <TabsTrigger value="admin" className="data-[state=active]:bg-radio-purple/30">
-                  <Cog className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Público</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="now-playing" className="space-y-4">
-                <Card className="glass-effect border-white/10">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Mic2 className="w-5 h-5 text-radio-purple" />
-                      <span>Sistema de Transmissão Avançado</span>
-                      <Badge variant="outline" className="border-green-500/50 text-green-400">
-                        <Zap className="w-3 h-3 mr-1" />
-                        IA Nível Mundial
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-400">Status Sistema</p>
-                        <p className="font-medium flex items-center">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
-                          Autogerenciável 24/7
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-400">Qualidade IA</p>
-                        <p className="font-medium">Ultra HD 320kbps</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-400">Latência</p>
-                        <p className="font-medium text-green-400">~85ms</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-400">Uptime</p>
-                        <p className="font-medium">99.98%</p>
-                      </div>
-                    </div>
-                    
-                    <Separator className="bg-white/10" />
-                    
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="bg-radio-purple/20 text-radio-purple border-radio-purple/30">
-                        <Brain className="w-3 h-3 mr-1" />
-                        IA Autogerenciável
-                      </Badge>
-                      <Badge variant="secondary" className="bg-radio-cyan/20 text-radio-cyan border-radio-cyan/30">
-                        Transmissão Contínua
-                      </Badge>
-                      <Badge variant="secondary" className="bg-radio-green/20 text-radio-green border-radio-green/30">
-                        Sistema Mundial
-                      </Badge>
-                      <Badge variant="secondary" className="bg-radio-pink/20 text-radio-pink border-radio-pink/30">
-                        Voz Clonada Premium
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="audio-engine">
-                <AdvancedAudioEngine />
-              </TabsContent>
-
-              <TabsContent value="scheduler">
-                <ProgramScheduler />
-              </TabsContent>
-
-              <TabsContent value="analytics">
-                <AdvancedAnalytics />
-              </TabsContent>
-
-              <TabsContent value="suno">
-                <SunoIntegration />
-              </TabsContent>
-
-              <TabsContent value="upload">
-                {supabaseUser ? (
-                  <MusicUpload />
-                ) : (
-                  <Card className="glass-effect border-white/10">
-                    <CardContent className="p-8 text-center">
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Faça login para enviar músicas</h3>
-                      <p className="text-gray-400 mb-4">
-                        Conecte-se para fazer upload de suas músicas e contribuir com a programação da rádio.
-                      </p>
-                      <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
-                        <LogIn className="w-4 h-4 mr-2" />
-                        Fazer Login
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              <TabsContent value="playlist">
-                {supabaseUser ? (
-                  <AdvancedPlaylist />
-                ) : (
-                  <Card className="glass-effect border-white/10">
-                    <CardContent className="p-8 text-center">
-                      <Volume2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Acesso às Playlists IA</h3>
-                      <p className="text-gray-400 mb-4">
-                        Faça login para acessar playlists inteligentes e personalizadas por IA.
-                      </p>
-                      <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
-                        <LogIn className="w-4 h-4 mr-2" />
-                        Fazer Login
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              <TabsContent value="streaming">
-                {supabaseUser ? (
-                  <StreamingEngine />
-                ) : (
-                  <Card className="glass-effect border-white/10">
-                    <CardContent className="p-8 text-center">
-                      <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Engine de Streaming Avançado</h3>
-                      <p className="text-gray-400 mb-4">
-                        Faça login para acessar controles de streaming de nível mundial.
-                      </p>
-                      <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
-                        <LogIn className="w-4 h-4 mr-2" />
-                        Fazer Login
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              <TabsContent value="ai-engine">
-                {supabaseUser ? (
-                  <AIRadioEngine />
-                ) : (
-                  <Card className="glass-effect border-white/10">
-                    <CardContent className="p-8 text-center">
-                      <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Motor de IA Avançado</h3>
-                      <p className="text-gray-400 mb-4">
-                        Faça login para acessar o sistema de IA autogerenciável mais avançado do mundo.
-                      </p>
-                      <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
-                        <LogIn className="w-4 h-4 mr-2" />
-                        Fazer Login
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              <TabsContent value="admin">
-                <Card className="glass-effect border-white/10">
-                  <CardContent className="p-8 text-center">
-                    <Settings className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Acesso Administrativo</h3>
-                    <p className="text-gray-400 mb-4">
-                      Para acessar o painel administrativo completo, use as credenciais admin007.
-                    </p>
-                    <Button 
-                      onClick={() => window.location.href = '/?admin'} 
-                      className="bg-red-500 hover:bg-red-600 text-white"
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Painel Admin
-                    </Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
           </div>
 
           {/* Enhanced Sidebar */}
           <div className="space-y-6">
-            <ChatInterface />
-            
             {/* Enhanced Queue with AI Predictions */}
             <Card className="glass-effect border-white/10">
               <CardHeader>
@@ -567,12 +373,12 @@ const Index = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Pico Mundial</span>
-                  <span className="text-sm font-medium text-radio-green">4,327</span>
+                  <span className="text-sm text-gray-400">Ouvintes Ativos</span>
+                  <span className="text-sm font-medium text-radio-cyan">{currentListeners.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Tempo Médio Global</span>
-                  <span className="text-sm font-medium text-radio-cyan">52 min</span>
+                  <span className="text-sm text-gray-400">Tempo Médio</span>
+                  <span className="text-sm font-medium text-radio-green">52 min</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-400">Interações IA</span>
@@ -586,50 +392,27 @@ const Index = () => {
                   <span className="text-sm text-gray-400">IA Performance</span>
                   <span className="text-sm font-medium text-green-400">98.7%</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">Qualidade Neural</span>
-                  <span className="text-sm font-medium text-radio-cyan">Ultra HD</span>
-                </div>
               </CardContent>
             </Card>
 
-            {/* System Health Monitor */}
-            <Card className="glass-effect border-white/10">
-              <CardHeader>
-                <CardTitle className="text-sm flex items-center space-x-2">
-                  <Activity className="w-4 h-4 text-radio-purple" />
-                  <span>Saúde do Sistema</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-400">Engine IA</span>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-xs text-green-400">Optimal</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-400">Voice Cloning</span>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-xs text-green-400">Active</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-400">Streaming</span>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-xs text-green-400">99.98%</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-400">Auto Scheduler</span>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-blue-400">Running</span>
-                  </div>
-                </div>
+            {/* Admin Access Card */}
+            <Card className="glass-effect border-red-500/20 bg-red-500/5">
+              <CardContent className="p-4 text-center">
+                <Settings className="w-8 h-8 text-red-400 mx-auto mb-2" />
+                <h3 className="font-medium mb-2">Acesso Administrativo</h3>
+                <p className="text-xs text-gray-400 mb-3">
+                  Para acessar o painel admin completo
+                </p>
+                <Button 
+                  onClick={() => window.location.href = '/?admin'} 
+                  className="w-full bg-red-500 hover:bg-red-600"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Admin Dashboard
+                </Button>
+                <p className="text-xs text-gray-500 mt-2">
+                  Login: admin007 / Senha: admin007
+                </p>
               </CardContent>
             </Card>
           </div>

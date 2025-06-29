@@ -1,122 +1,78 @@
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
-@layer base {
-  :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 263 70% 50.4%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 263 70% 50.4%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+:root {
+  --radio-darker: #0a0a0f;
+  --radio-dark: #1a1a2e;
+  --radio-purple: #6c5ce7;
+  --radio-cyan: #00cec9;
+  --radio-pink: #fd79a8;
+  --radio-green: #00b894;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(135deg, #0A0A0A 0%, #1A1A2E 50%, #16213E 100%);
-    min-height: 100vh;
-  }
-
-  html {
-    scroll-behavior: smooth;
+    font-family: "Inter", sans-serif;
   }
 }
 
-@layer components {
-  .glass-effect {
-    @apply backdrop-blur-xl bg-white/5 border border-white/10;
-  }
-  
-  .neon-glow {
-    text-shadow: 0 0 10px currentColor;
+@layer utilities {
+  .radio-gradient {
+    background: linear-gradient(135deg, var(--radio-purple), var(--radio-cyan));
   }
   
   .gradient-text {
-    @apply bg-gradient-to-r from-radio-purple via-radio-pink to-radio-cyan bg-clip-text text-transparent;
+    background: linear-gradient(135deg, var(--radio-purple), var(--radio-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
-  .radio-gradient {
-    background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 25%, #3B82F6 50%, #06B6D4 75%, #10B981 100%);
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite alternate;
   }
   
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+  @keyframes pulse-glow {
+    from {
+      box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
+    }
+    to {
+      box-shadow: 0 0 30px rgba(108, 92, 231, 0.6);
+    }
+  }
+  
+  .bg-gradient-radial {
+    background: radial-gradient(circle, var(--tw-gradient-stops));
   }
 }
 
-/* Animações personalizadas */
-@keyframes pulse-ring {
-  0% {
-    transform: scale(0.33);
-  }
-  40%, 50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.33);
-  }
-}
+/* Custom colors for Tailwind */
+.bg-radio-darker { background-color: var(--radio-darker); }
+.bg-radio-dark { background-color: var(--radio-dark); }
+.bg-radio-purple { background-color: var(--radio-purple); }
+.bg-radio-cyan { background-color: var(--radio-cyan); }
+.bg-radio-pink { background-color: var(--radio-pink); }
+.bg-radio-green { background-color: var(--radio-green); }
 
-.pulse-ring {
-  animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-}
+.text-radio-purple { color: var(--radio-purple); }
+.text-radio-cyan { color: var(--radio-cyan); }
+.text-radio-pink { color: var(--radio-pink); }
+.text-radio-green { color: var(--radio-green); }
 
-/* Estilos para visualizador de áudio */
-.audio-bar {
-  animation: wave 1s ease-in-out infinite;
-}
-
-.audio-bar:nth-child(2) { animation-delay: 0.1s; }
-.audio-bar:nth-child(3) { animation-delay: 0.2s; }
-.audio-bar:nth-child(4) { animation-delay: 0.3s; }
-.audio-bar:nth-child(5) { animation-delay: 0.4s; }
+.border-radio-purple { border-color: var(--radio-purple); }
+.border-radio-cyan { border-color: var(--radio-cyan); }
+.border-radio-pink { border-color: var(--radio-pink); }
+.border-radio-green { border-color: var(--radio-green); }
