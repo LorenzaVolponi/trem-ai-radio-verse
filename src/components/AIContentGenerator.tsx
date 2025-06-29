@@ -17,7 +17,7 @@ import {
   Shuffle,
   RefreshCw,
   Headphones,
-  Waveform
+  AudioWaveform
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
