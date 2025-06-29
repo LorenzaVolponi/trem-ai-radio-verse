@@ -90,6 +90,30 @@ To connect a domain, navigate to Project > Settings > Domains and click Connect 
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
 
+## Backend radio server
+
+The repository includes a minimal [FastAPI](https://fastapi.tiangolo.com/) backend under `backend/`. It exposes endpoints to list available streams and launch an FFmpeg process that relays audio to an Icecast server.
+
+Run it locally with:
+
+```bash
+cd backend
+uvicorn main:app
+```
+Install the optional `suno-api` dependency to enable automatic song
+generation and trending track retrieval. Set the `SUNO_COOKIE`
+environment variable with a valid session cookie from
+[suno.com](https://suno.com). The backend launches a small
+`TrendingScraper` thread that refreshes the playlist every 10 minutes
+to keep the radio programming up to date 24/7.
+
+Adjust `backend/main.py` with your own credentials and prompts as needed.
+
+The backend exposes `/trending` which returns a list of audio URLs from
+Suno's trending page. If Suno is unavailable it falls back to a public
+Icecast stream. The frontend automatically fetches these URLs for
+seamless autoplay on page load.
+
 ## Legal & Open Source Notice
 
 See [disclaimers.md](./disclaimers.md) for details about third-party tools and licensing. Usage of Suno-generated music must comply with [Suno's Terms of Service](https://suno.com/terms) and [Privacy Policy](https://suno.com/privacy).
