@@ -51,6 +51,7 @@ import ProgramScheduler from '@/components/ProgramScheduler';
 import AdvancedAnalytics from '@/components/AdvancedAnalytics';
 import AdminLogin from '@/components/AdminLogin';
 import RadioDashboard from '@/components/RadioDashboard';
+import AutoPlayRadio from '@/components/AutoPlayRadio';
 
 const Index = () => {
   const [currentListeners, setCurrentListeners] = useState(2847);
@@ -112,6 +113,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-radio-darker via-gray-900 to-radio-dark text-white overflow-hidden">
+      <AutoPlayRadio />
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-radial from-radio-purple/20 via-transparent to-transparent"></div>
       <div className="absolute top-0 right-0 w-96 h-96 bg-radio-pink/10 rounded-full blur-3xl animate-pulse"></div>
