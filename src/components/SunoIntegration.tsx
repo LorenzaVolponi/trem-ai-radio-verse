@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 
 interface SunoTrack {
+  [key: string]: any; // Add index signature for JSON compatibility
   id: string;
   title: string;
   description: string;
@@ -122,6 +122,19 @@ const SunoIntegration = () => {
     }
 
     try {
+      // Properly format metadata as JSON
+      const metadata = {
+        suno_data: {
+          id: track.id,
+          title: track.title,
+          description: track.description,
+          tags: track.tags,
+          username: track.username
+        },
+        imported_from: 'suno_groovebot',
+        original_description: track.description
+      };
+
       const { error } = await supabase
         .from('tracks')
         .insert({
@@ -135,11 +148,7 @@ const SunoIntegration = () => {
           suno_id: track.id,
           is_ai_generated: true,
           created_by: user.id,
-          metadata: {
-            suno_data: track,
-            imported_from: 'suno_groovebot',
-            original_description: track.description
-          }
+          metadata: metadata
         });
 
       if (error) throw error;

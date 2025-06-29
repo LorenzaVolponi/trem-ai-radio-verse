@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ import {
   Square, 
   Download,
   Brain,
-  Waveform,
+  Radio,
   Volume2,
   Settings,
   Trash2,
@@ -245,16 +244,27 @@ const VoiceCloningSystem = () => {
       return;
     }
 
-    const formattedClones: VoiceClone[] = data.map(clone => ({
-      id: clone.id,
-      name: clone.name,
-      description: clone.description,
-      status: clone.is_active ? 'ready' : 'error',
-      quality: clone.model_data?.quality_score || 85,
-      duration: clone.model_data?.training_duration || 0,
-      created_at: clone.created_at,
-      sample_url: clone.voice_file_url
-    }));
+    const formattedClones: VoiceClone[] = data.map(clone => {
+      // Safely handle JSON data with proper type checking
+      const modelData = clone.model_data as any;
+      const qualityScore = modelData && typeof modelData === 'object' && modelData.quality_score 
+        ? modelData.quality_score 
+        : 85;
+      const trainingDuration = modelData && typeof modelData === 'object' && modelData.training_duration 
+        ? modelData.training_duration 
+        : 0;
+
+      return {
+        id: clone.id,
+        name: clone.name,
+        description: clone.description,
+        status: clone.is_active ? 'ready' : 'error',
+        quality: qualityScore,
+        duration: trainingDuration,
+        created_at: clone.created_at,
+        sample_url: clone.voice_file_url
+      };
+    });
 
     setVoiceClones(formattedClones);
   };
@@ -416,7 +426,7 @@ const VoiceCloningSystem = () => {
         <CardContent>
           {voiceClones.length === 0 ? (
             <div className="text-center py-8">
-              <Waveform className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <Radio className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-400">Nenhuma voz clonada ainda</p>
               <p className="text-sm text-gray-500">Grave uma amostra para começar</p>
             </div>
