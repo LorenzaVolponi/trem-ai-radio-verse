@@ -71,6 +71,13 @@ VITE_SUPABASE_ANON_KEY
 VITE_SUPABASE_DB_URL
 ```
 
+The `VITE_SUPABASE_DB_URL` should match your Postgres connection string, for
+instance:
+
+```
+postgresql://postgres:123456a@db.tkijutysfgzncswvjmhn.supabase.co:5432/postgres
+```
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/2b3aa8b6-5b13-4ee9-b346-83b85c483719) and click on Share -> Publish.
