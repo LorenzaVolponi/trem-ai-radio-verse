@@ -27,9 +27,20 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-radio-darker text-white p-4">
-          <div>
+          <div className="max-w-md text-center">
             <h1 className="text-2xl font-bold mb-2">Algo deu errado</h1>
-            <p className="text-sm text-gray-400">{this.state.error?.message}</p>
+            <p className="text-sm text-gray-400 mb-4">{this.state.error?.message}</p>
+            {this.state.error?.stack && (
+              <pre className="bg-radio-dark p-2 text-left text-xs whitespace-pre-wrap overflow-auto rounded mb-4">
+                {this.state.error.stack}
+              </pre>
+            )}
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-radio-purple rounded hover:bg-radio-purple/80"
+            >
+              Recarregar página
+            </button>
           </div>
         </div>
       );

@@ -6,6 +6,9 @@ const SupabaseWarning = () => {
   return (
     <div className="bg-red-600 text-white text-center p-2 text-sm">
       Supabase environment variables are not configured. Backend features are disabled.
+      <span className="ml-2 underline">
+        Check your <code>.env</code> file.
+      </span>
     </div>
   );
 };
