@@ -103,7 +103,9 @@ uvicorn main:app
 Install the optional `suno-api` dependency to enable automatic song
 generation and trending track retrieval. Set the `SUNO_COOKIE`
 environment variable with a valid session cookie from
-[suno.com](https://suno.com).
+[suno.com](https://suno.com). The backend launches a small
+`TrendingScraper` thread that refreshes the playlist every 10 minutes
+to keep the radio programming up to date 24/7.
 
 Adjust `backend/main.py` with your own credentials and prompts as needed.
 

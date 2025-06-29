@@ -10,5 +10,6 @@ This project is for educational purposes and integrates several third-party serv
 - **Shoutcast**: Alternatively, streaming may use [Shoutcast](https://www.shoutcast.com/) (proprietary license).
 - **FFmpeg**: Audio processing relies on [FFmpeg](https://ffmpeg.org/) (LGPL/GPL License).
 - **suno-api**: Example API client for Suno, available under the BSD-3-Clause license. It enables fetching trending tracks from Suno.
+- **requests**: HTTP library used by the trending scraper (Apache 2.0 License).
 
 Ensure you review the respective licenses for each dependency and comply with all applicable laws when deploying this project.

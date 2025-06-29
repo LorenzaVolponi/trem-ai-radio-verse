@@ -5,6 +5,8 @@ from typing import List
 import os
 import requests
 from suno import Suno
+import threading
+from .trending_scraper import TrendingScraper
 
 app = FastAPI(title="Radio Backend")
 
@@ -18,6 +20,9 @@ try:
     suno_client = Suno(cookie=cookie) if cookie else None
 except Exception:
     suno_client = None
+
+scraper = TrendingScraper(cookie, tracks)
+threading.Thread(target=scraper.run_forever, daemon=True).start()
 
 @app.get("/tracks", response_model=List[str])
 def list_tracks():
@@ -58,14 +63,5 @@ def generate_and_stream(prompt: str = "uplifting pop track"):
 
 @app.get("/trending")
 def list_trending() -> JSONResponse:
-    """Return a list of trending Suno songs (audio URLs)."""
-    if not suno_client:
-        return JSONResponse(content=tracks)
-    try:
-        songs = suno_client.get_songs()
-        audio_urls = [song.audio_url for song in songs if song.audio_url]
-        if audio_urls:
-            return JSONResponse(content=audio_urls)
-    except Exception:
-        pass
-    return JSONResponse(content=tracks)
+    """Return cached list of trending Suno songs."""
+    return JSONResponse(content=scraper.trending)
