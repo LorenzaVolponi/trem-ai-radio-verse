@@ -1,5 +1,5 @@
 from fastapi import FastAPI, BackgroundTasks
-from fastapi.responses import StreamingResponse, RedirectResponse
+from fastapi.responses import StreamingResponse, RedirectResponse, JSONResponse
 import subprocess
 from typing import List
 import os
@@ -54,3 +54,16 @@ def generate_and_stream(prompt: str = "uplifting pop track"):
         return RedirectResponse(url=tracks[0])
     audio_resp = requests.get(song.audio_url, stream=True)
     return StreamingResponse(audio_resp.iter_content(chunk_size=4096), media_type="audio/mpeg")
+
+
+@app.get("/trending")
+def list_trending() -> JSONResponse:
+    """Return a list of trending Suno songs (audio URLs)."""
+    if not suno_client:
+        return JSONResponse(content=tracks)
+    try:
+        songs = suno_client.get_songs()
+    except Exception:
+        return JSONResponse(content=tracks)
+    audio_urls = [song.audio_url for song in songs if song.audio_url]
+    return JSONResponse(content=audio_urls)

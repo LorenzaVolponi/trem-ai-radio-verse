@@ -1,16 +1,48 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-// Backend endpoint that generates a song via Suno and streams it.
-const STREAM_URL = '/generate';
+const TRENDING_URL = '/trending';
 
 const AutoPlayRadio: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [failed, setFailed] = useState(false);
+  const [playlist, setPlaylist] = useState<string[]>([]);
+  const [current, setCurrent] = useState(0);
 
+  // fetch playlist and autoplay
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
+    const fetchTrending = async () => {
+      try {
+        const resp = await fetch(TRENDING_URL);
+        const data = await resp.json();
+        if (Array.isArray(data)) {
+          setPlaylist(data);
+        }
+      } catch (_) {
+        setPlaylist([]);
+      }
+    };
+
+    fetchTrending();
+
+    const handleEnded = () => {
+      setCurrent((prev) => prev + 1);
+    };
+
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || playlist.length === 0) return;
+    const index = current % playlist.length;
+    audio.src = playlist[index];
     const play = async () => {
       try {
         audio.muted = true;
@@ -19,24 +51,12 @@ const AutoPlayRadio: React.FC = () => {
         setTimeout(() => {
           if (audio) audio.muted = false;
         }, 500);
-      } catch (err) {
+      } catch (_) {
         setFailed(true);
-        const clickHandler = async () => {
-          try {
-            await audio.play();
-            setFailed(false);
-            document.removeEventListener('click', clickHandler);
-          } catch (_) {
-            /* ignored */
-          }
-        };
-        document.addEventListener('click', clickHandler);
       }
     };
-
-    audio.src = STREAM_URL;
     play();
-  }, []);
+  }, [playlist, current]);
 
   const handleStartClick = async () => {
     const audio = audioRef.current;

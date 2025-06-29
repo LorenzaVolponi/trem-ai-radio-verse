@@ -101,10 +101,15 @@ cd backend
 uvicorn main:app
 ```
 Install the optional `suno-api` dependency to enable automatic song
-generation and set the `SUNO_COOKIE` environment variable with a valid
-session cookie from [suno.com](https://suno.com).
+generation and trending track retrieval. Set the `SUNO_COOKIE`
+environment variable with a valid session cookie from
+[suno.com](https://suno.com).
 
 Adjust `backend/main.py` with your own credentials and prompts as needed.
+
+The backend exposes `/trending` which returns a list of audio URLs from
+Suno's trending page. The frontend automatically fetches these URLs for
+seamless playback on page load.
 
 ## Legal & Open Source Notice
 
