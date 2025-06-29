@@ -60,6 +60,24 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Environment variables
+
+Copy `.env.example` to `.env` and adjust the values if needed. These variables
+configure the Supabase backend:
+
+```
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+VITE_SUPABASE_DB_URL
+```
+
+The `VITE_SUPABASE_DB_URL` should match your Postgres connection string, for
+instance:
+
+```
+postgresql://postgres:123456a@db.tkijutysfgzncswvjmhn.supabase.co:5432/postgres
+```
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/2b3aa8b6-5b13-4ee9-b346-83b85c483719) and click on Share -> Publish.
@@ -71,3 +89,7 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Legal & Open Source Notice
+
+See [disclaimers.md](./disclaimers.md) for details about third-party tools and licensing. Usage of Suno-generated music must comply with [Suno's Terms of Service](https://suno.com/terms) and [Privacy Policy](https://suno.com/privacy).
