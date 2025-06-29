@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import React, { Suspense, lazy } from 'react';
 import LoadingSpinner from './components/LoadingSpinner';
+import SupabaseWarning from './components/SupabaseWarning';
 
 const Index = lazy(() => import('./pages/Index'));
 const Auth = lazy(() => import('./pages/Auth'));
@@ -19,6 +20,7 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
+          <SupabaseWarning />
           <Toaster />
           <Sonner />
           <BrowserRouter>
