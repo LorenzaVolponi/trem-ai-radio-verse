@@ -4,8 +4,16 @@ import type { Database } from './types';
 
 export const SUPABASE_DB_URL = import.meta.env.VITE_SUPABASE_DB_URL as string;
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+
+if (!SUPABASE_URL) {
+  throw new Error('VITE_SUPABASE_URL is required.');
+}
+
+if (!SUPABASE_PUBLISHABLE_KEY) {
+  throw new Error('VITE_SUPABASE_ANON_KEY is required.');
+}
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
