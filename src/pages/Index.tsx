@@ -21,7 +21,11 @@ import {
   LogIn,
   Upload,
   Mic2,
-  Brain
+  Brain,
+  Search,
+  Share2,
+  Activity,
+  Volume2
 } from 'lucide-react';
 import AdvancedAudioPlayer from '@/components/AdvancedAudioPlayer';
 import MusicUpload from '@/components/MusicUpload';
@@ -31,6 +35,9 @@ import ChatInterface from '@/components/ChatInterface';
 import AdminPanel from '@/components/AdminPanel';
 import SunoIntegration from '@/components/SunoIntegration';
 import AIRadioEngine from '@/components/AIRadioEngine';
+import StreamingEngine from '@/components/StreamingEngine';
+import AdvancedPlaylist from '@/components/AdvancedPlaylist';
+import SEOOptimizer from '@/components/SEOOptimizer';
 
 const Index = () => {
   const [currentListeners, setCurrentListeners] = useState(1247);
@@ -137,7 +144,7 @@ const Index = () => {
 
             {/* Tabs de Conteúdo */}
             <Tabs defaultValue="now-playing" className="w-full">
-              <TabsList className="grid w-full grid-cols-6 glass-effect border border-white/10">
+              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 glass-effect border border-white/10">
                 <TabsTrigger value="now-playing" className="data-[state=active]:bg-radio-purple/30">
                   <Music className="w-4 h-4 mr-2" />
                   Tocando
@@ -150,17 +157,25 @@ const Index = () => {
                   <Upload className="w-4 h-4 mr-2" />
                   Upload
                 </TabsTrigger>
+                <TabsTrigger value="playlist" className="data-[state=active]:bg-radio-purple/30">
+                  <Volume2 className="w-4 h-4 mr-2" />
+                  Playlist
+                </TabsTrigger>
                 <TabsTrigger value="schedule" className="data-[state=active]:bg-radio-purple/30">
                   <Calendar className="w-4 h-4 mr-2" />
-                  Programação
+                  Programa
+                </TabsTrigger>
+                <TabsTrigger value="streaming" className="data-[state=active]:bg-radio-purple/30">
+                  <Activity className="w-4 h-4 mr-2" />
+                  Stream
                 </TabsTrigger>
                 <TabsTrigger value="ai-engine" className="data-[state=active]:bg-radio-purple/30">
                   <Brain className="w-4 h-4 mr-2" />
                   IA Engine
                 </TabsTrigger>
-                <TabsTrigger value="admin" className="data-[state=active]:bg-radio-purple/30">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Controle
+                <TabsTrigger value="seo" className="data-[state=active]:bg-radio-purple/30">
+                  <Search className="w-4 h-4 mr-2" />
+                  SEO
                 </TabsTrigger>
               </TabsList>
 
@@ -237,8 +252,48 @@ const Index = () => {
                 )}
               </TabsContent>
 
+              <TabsContent value="playlist">
+                {user ? (
+                  <AdvancedPlaylist />
+                ) : (
+                  <Card className="glass-effect border-white/10">
+                    <CardContent className="p-8 text-center">
+                      <Volume2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Acesso às Playlists</h3>
+                      <p className="text-gray-400 mb-4">
+                        Faça login para acessar playlists personalizadas e inteligentes.
+                      </p>
+                      <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
+                        <LogIn className="w-4 h-4 mr-2" />
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
               <TabsContent value="schedule">
                 <ProgramSchedule />
+              </TabsContent>
+
+              <TabsContent value="streaming">
+                {user ? (
+                  <StreamingEngine />
+                ) : (
+                  <Card className="glass-effect border-white/10">
+                    <CardContent className="p-8 text-center">
+                      <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Controle de Streaming</h3>
+                      <p className="text-gray-400 mb-4">
+                        Faça login para acessar controles avançados de streaming.
+                      </p>
+                      <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
+                        <LogIn className="w-4 h-4 mr-2" />
+                        Fazer Login
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="ai-engine">
@@ -261,16 +316,16 @@ const Index = () => {
                 )}
               </TabsContent>
 
-              <TabsContent value="admin">
+              <TabsContent value="seo">
                 {user ? (
-                  <AdminPanel />
+                  <SEOOptimizer />
                 ) : (
                   <Card className="glass-effect border-white/10">
                     <CardContent className="p-8 text-center">
-                      <Settings className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">Acesso restrito</h3>
+                      <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Otimização SEO</h3>
                       <p className="text-gray-400 mb-4">
-                        Faça login para acessar o painel administrativo.
+                        Faça login para acessar ferramentas de SEO e analytics.
                       </p>
                       <Button onClick={() => navigate('/auth')} className="bg-radio-purple hover:bg-radio-purple/80">
                         <LogIn className="w-4 h-4 mr-2" />
