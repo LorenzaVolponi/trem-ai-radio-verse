@@ -81,7 +81,7 @@ const AdvancedAudioPlayer: React.FC<AdvancedAudioPlayerProps> = ({
       playTrack(playlist[0], 0);
       setHasAutoPlayed(true);
     }
-  }, [playlist]);
+  }, [playlist, currentTrack, hasAutoPlayed, playTrack]);
 
   // Filter playlist based on search and genre
   useEffect(() => {
