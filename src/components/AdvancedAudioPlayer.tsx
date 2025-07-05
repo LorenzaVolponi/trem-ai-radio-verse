@@ -63,6 +63,7 @@ const AdvancedAudioPlayer: React.FC<AdvancedAudioPlayerProps> = ({
   const [genreFilter, setGenreFilter] = useState('all');
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [likedTracks, setLikedTracks] = useState<Set<string>>(new Set());
+  const [hasAutoPlayed, setHasAutoPlayed] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const { user } = useAuth();
@@ -73,6 +74,14 @@ const AdvancedAudioPlayer: React.FC<AdvancedAudioPlayerProps> = ({
     loadTracks();
     loadLikedTracks();
   }, []);
+
+  // Autoplay first track when playlist is loaded
+  useEffect(() => {
+    if (!currentTrack && !hasAutoPlayed && playlist.length > 0) {
+      playTrack(playlist[0], 0);
+      setHasAutoPlayed(true);
+    }
+  }, [playlist]);
 
   // Filter playlist based on search and genre
   useEffect(() => {
@@ -267,6 +276,7 @@ const AdvancedAudioPlayer: React.FC<AdvancedAudioPlayerProps> = ({
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleEnded}
+        autoPlay
         preload="metadata"
       />
 
