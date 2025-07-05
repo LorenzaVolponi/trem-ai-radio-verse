@@ -218,10 +218,11 @@ const VoiceCloningSystem = () => {
       // Reload voice clones
       loadVoiceClones();
 
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       toast({
         title: "Erro no treinamento",
-        description: error.message,
+        description: err.message,
         variant: "destructive",
       });
     } finally {
@@ -246,12 +247,15 @@ const VoiceCloningSystem = () => {
 
     const formattedClones: VoiceClone[] = data.map(clone => {
       // Safely handle JSON data with proper type checking
-      const modelData = clone.model_data as any;
-      const qualityScore = modelData && typeof modelData === 'object' && modelData.quality_score 
-        ? modelData.quality_score 
+      const modelData = clone.model_data as {
+        quality_score?: number;
+        training_duration?: number;
+      } | null;
+      const qualityScore = modelData && typeof modelData === 'object' && modelData.quality_score
+        ? modelData.quality_score
         : 85;
-      const trainingDuration = modelData && typeof modelData === 'object' && modelData.training_duration 
-        ? modelData.training_duration 
+      const trainingDuration = modelData && typeof modelData === 'object' && modelData.training_duration
+        ? modelData.training_duration
         : 0;
 
       return {

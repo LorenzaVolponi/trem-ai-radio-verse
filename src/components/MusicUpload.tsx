@@ -123,10 +123,11 @@ const MusicUpload = () => {
       setAudioFile(null);
       setCoverFile(null);
 
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       toast({
         title: "Erro",
-        description: error.message,
+        description: err.message,
         variant: "destructive",
       });
     } finally {

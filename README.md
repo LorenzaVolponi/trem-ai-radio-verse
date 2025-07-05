@@ -68,6 +68,10 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Features
+
+- Autoplay the first playlist track once the playlist loads
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/2b3aa8b6-5b13-4ee9-b346-83b85c483719) and click on Share -> Publish.

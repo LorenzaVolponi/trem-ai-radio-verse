@@ -37,6 +37,8 @@ interface Program {
   engagement?: number;
 }
 
+type ProgramType = Program["type"];
+
 const ProgramScheduler = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [programs, setPrograms] = useState<Program[]>([
@@ -361,7 +363,7 @@ const ProgramScheduler = () => {
             
             <select
               value={newProgram.type}
-              onChange={(e) => setNewProgram({...newProgram, type: e.target.value as any})}
+              onChange={(e) => setNewProgram({...newProgram, type: e.target.value as ProgramType})}
               className="glass-effect border-white/20 bg-white/5 text-white rounded-md px-3 py-2"
             >
               <option value="ai-generated">IA Generated</option>

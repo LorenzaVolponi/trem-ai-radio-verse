@@ -119,16 +119,18 @@ const AdvancedPlaylist = () => {
           .slice(0, 20);
         playlistName = 'Trending Now';
         break;
-      case 'genre':
+      case 'genre': {
         const genres = [...new Set(tracks.map(t => t.genre).filter(Boolean))];
         const randomGenre = genres[Math.floor(Math.random() * genres.length)];
         filteredTracks = tracks.filter(track => track.genre === randomGenre).slice(0, 15);
         playlistName = `${randomGenre} Mix`;
         break;
-      case 'mood':
+      }
+      case 'mood': {
         filteredTracks = tracks.filter(track => track.liked).slice(0, 25);
         playlistName = 'Favoritas';
         break;
+      }
     }
 
     const totalDuration = filteredTracks.reduce((acc, track) => acc + (track.duration || 0), 0);
