@@ -5,344 +5,426 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { 
   Brain, 
   Mic, 
   Music, 
   Zap, 
-  Bot,
-  Volume2,
   Play,
   Pause,
-  Shuffle,
-  RefreshCw,
-  Headphones,
-  AudioWaveform
+  Download,
+  Upload,
+  Settings,
+  Crown,
+  Trophy,
+  Star,
+  Heart,
+  Volume2,
+  Radio,
+  Sparkles
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface VoiceModel {
-  name: string;
-  type: string;
-  status: 'active' | 'loading' | 'offline';
-  quality: string;
-  latency: string;
-}
-
-interface GeneratedContent {
-  id: string;
-  type: 'voice' | 'music' | 'script';
-  title: string;
-  content: string;
-  duration: number;
-  timestamp: Date;
-}
-
 const AIContentGenerator = () => {
-  const [voiceModels] = useState<VoiceModel[]>([
-    { name: 'VITS Premium', type: 'Neural TTS', status: 'active', quality: 'Ultra HD', latency: '50ms' },
-    { name: 'Coqui TTS', type: 'Multi-lang', status: 'active', quality: 'HD', latency: '75ms' },
-    { name: 'Bark AI', type: 'Emotional', status: 'active', quality: 'HD+', latency: '65ms' },
-    { name: 'Tortoise TTS', type: 'Studio', status: 'loading', quality: 'Studio', latency: '120ms' }
-  ]);
+  const [voiceSettings, setVoiceSettings] = useState({
+    selectedVoice: 'Voz Aurora Premium',
+    emotionalTone: 85,
+    speechSpeed: 70,
+    pronunciation: 90
+  });
 
-  const [musicGenerators] = useState([
-    { name: 'MusicGen', status: 'active', model: 'Facebook AI' },
-    { name: 'Riffusion', status: 'active', model: 'Stability AI' },
-    { name: 'AudioGen', status: 'active', model: 'Meta' },
-    { name: 'Suno Integration', status: 'active', model: 'Suno API' }
-  ]);
+  const [musicSettings, setMusicSettings] = useState({
+    genre: 'Eletrônica Cósmica',
+    mood: 'Energético',
+    duration: 180,
+    bpm: 128
+  });
 
-  const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [customPrompt, setCustomPrompt] = useState('');
-  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationProgress, setGenerationProgress] = useState({
+    voice: 0,
+    music: 0,
+    content: 0
+  });
+
+  const [isGenerating, setIsGenerating] = useState({
+    voice: false,
+    music: false,
+    content: false
+  });
+
+  const [generatedContent, setGeneratedContent] = useState({
+    voices: [],
+    tracks: [],
+    scripts: []
+  });
 
   const { toast } = useToast();
 
-  // Simulate content generation
+  // Simulate real-time generation progress
   useEffect(() => {
     const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        generateAutomaticContent();
+      if (isGenerating.voice || isGenerating.music || isGenerating.content) {
+        setGenerationProgress(prev => ({
+          voice: prev.voice < 100 && isGenerating.voice ? prev.voice + Math.random() * 5 : prev.voice,
+          music: prev.music < 100 && isGenerating.music ? prev.music + Math.random() * 3 : prev.music,
+          content: prev.content < 100 && isGenerating.content ? prev.content + Math.random() * 8 : prev.content
+        }));
       }
-    }, 15000);
+    }, 500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isGenerating]);
 
-  const generateAutomaticContent = () => {
-    const contentTypes = ['voice', 'music', 'script'] as const;
-    const type = contentTypes[Math.floor(Math.random() * contentTypes.length)];
+  const generateVoice = async () => {
+    setIsGenerating(prev => ({ ...prev, voice: true }));
+    setGenerationProgress(prev => ({ ...prev, voice: 0 }));
     
-    const newContent: GeneratedContent = {
-      id: `content_${Date.now()}`,
-      type,
-      title: getContentTitle(type),
-      content: getContentDescription(type),
-      duration: Math.floor(Math.random() * 300) + 60,
-      timestamp: new Date()
-    };
-
-    setGeneratedContent(prev => [newContent, ...prev.slice(0, 9)]);
-  };
-
-  const getContentTitle = (type: string) => {
-    const titles = {
-      voice: ['Vinheta Matinal', 'Apresentação News', 'Transição Musical', 'Interação Ouvinte'],
-      music: ['Batida Cósmica', 'Harmonia Sintética', 'Ritmo Neural', 'Melodia Quântica'],
-      script: ['Roteiro Noticioso', 'Segmento Cultural', 'Papo Descontraído', 'Info Meteorológica']
-    };
-    return titles[type][Math.floor(Math.random() * titles[type].length)];
-  };
-
-  const getContentDescription = (type: string) => {
-    const descriptions = {
-      voice: 'Locução gerada com voz clonada usando modelo VITS Premium',
-      music: 'Música original criada por IA com MusicGen e refinada',
-      script: 'Roteiro dinâmico gerado por LLM para programação'
-    };
-    return descriptions[type];
-  };
-
-  const generateCustomContent = async () => {
-    if (!customPrompt.trim()) {
+    // Simulate voice generation
+    setTimeout(() => {
+      setIsGenerating(prev => ({ ...prev, voice: false }));
+      setGenerationProgress(prev => ({ ...prev, voice: 100 }));
       toast({
-        title: "Prompt necessário",
-        description: "Digite um prompt para gerar conteúdo personalizado",
-        variant: "destructive",
+        title: "🎤 Voz IA Oscar Gerada!",
+        description: `${voiceSettings.selectedVoice} criada com perfeição mundial`,
       });
-      return;
-    }
+    }, 8000);
+  };
 
-    setIsGenerating(true);
-    setGenerationProgress(0);
-
-    // Simulate generation progress
-    const progressInterval = setInterval(() => {
-      setGenerationProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          setIsGenerating(false);
-          
-          // Add generated content
-          const newContent: GeneratedContent = {
-            id: `custom_${Date.now()}`,
-            type: 'voice',
-            title: 'Conteúdo Personalizado',
-            content: `Gerado a partir do prompt: "${customPrompt}"`,
-            duration: 180,
-            timestamp: new Date()
-          };
-
-          setGeneratedContent(prev => [newContent, ...prev.slice(0, 9)]);
-          setCustomPrompt('');
-          
-          toast({
-            title: "Conteúdo Gerado!",
-            description: "Seu conteúdo personalizado foi criado com sucesso",
-          });
-          
-          return 0;
-        }
-        return prev + Math.random() * 15;
+  const generateMusic = async () => {
+    setIsGenerating(prev => ({ ...prev, music: true }));
+    setGenerationProgress(prev => ({ ...prev, music: 0 }));
+    
+    // Simulate music generation
+    setTimeout(() => {
+      setIsGenerating(prev => ({ ...prev, music: false }));
+      setGenerationProgress(prev => ({ ...prev, music: 100 }));
+      toast({
+        title: "🎵 Música IA Oscar Criada!",
+        description: `Track ${musicSettings.genre} de nível mundial gerada`,
       });
-    }, 500);
+    }, 12000);
   };
 
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'text-green-400 border-green-500/50';
-      case 'loading': return 'text-yellow-400 border-yellow-500/50';
-      case 'offline': return 'text-red-400 border-red-500/50';
-      default: return 'text-gray-400 border-gray-500/50';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'voice': return <Mic className="w-4 h-4" />;
-      case 'music': return <Music className="w-4 h-4" />;
-      case 'script': return <Bot className="w-4 h-4" />;
-      default: return <Brain className="w-4 h-4" />;
-    }
+  const generateContent = async () => {
+    setIsGenerating(prev => ({ ...prev, content: true }));
+    setGenerationProgress(prev => ({ ...prev, content: 0 }));
+    
+    // Simulate content generation
+    setTimeout(() => {
+      setIsGenerating(prev => ({ ...prev, content: false }));
+      setGenerationProgress(prev => ({ ...prev, content: 100 }));
+      toast({
+        title: "📝 Conteúdo IA Oscar Gerado!",
+        description: "Roteiro premium de rádio criado automaticamente",
+      });
+    }, 6000);
   };
 
   return (
     <div className="space-y-6">
-      {/* Voice Models Status */}
-      <Card className="glass-effect border-white/10">
+      {/* AI Content Generation Overview */}
+      <Card className="backdrop-blur-md bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border-white/10">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Mic className="w-5 h-5 text-radio-purple" />
-            <span>Modelos de Voz IA</span>
-            <Badge variant="outline" className="border-radio-green/50 text-radio-green">
-              Open Source
+            <Brain className="w-6 h-6 text-purple-400" />
+            <span>Gerador de Conteúdo IA Oscar - Nível Mundial</span>
+            <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
+              <Crown className="w-3 h-3 mr-1" />
+              Oscar Winner
             </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {voiceModels.map((model, index) => (
-              <div key={index} className="p-3 rounded-lg bg-white/5 border border-white/10">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-white">{model.name}</h3>
-                  <Badge variant="outline" className={getStatusColor(model.status)}>
-                    {model.status}
-                  </Badge>
-                </div>
-                <div className="space-y-1 text-sm text-gray-400">
-                  <p>Tipo: {model.type}</p>
-                  <p>Qualidade: {model.quality}</p>
-                  <p>Latência: {model.latency}</p>
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs text-gray-500">
-                    {model.status === 'active' ? 'Pronto para uso' : 'Carregando...'}
-                  </span>
-                  {model.status === 'active' && (
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20">
+              <Mic className="w-12 h-12 mx-auto mb-3 text-purple-400" />
+              <h3 className="font-bold text-white mb-2">Clonagem de Voz Oscar</h3>
+              <p className="text-sm text-gray-400 mb-3">VITS + Coqui TTS Premium</p>
+              <Badge variant="outline" className="border-green-500/50 text-green-400">
+                <Heart className="w-3 h-3 mr-1" />
+                Ativo 24/7
+              </Badge>
+            </div>
+
+            <div className="text-center p-4 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20">
+              <Music className="w-12 h-12 mx-auto mb-3 text-cyan-400" />
+              <h3 className="font-bold text-white mb-2">Geração Musical Oscar</h3>
+              <p className="text-sm text-gray-400 mb-3">MusicGen + Suno Premium</p>
+              <Badge variant="outline" className="border-blue-500/50 text-blue-400">
+                <Sparkles className="w-3 h-3 mr-1" />
+                Gerando
+              </Badge>
+            </div>
+
+            <div className="text-center p-4 rounded-lg bg-gradient-to-br from-green-500/20 to-teal-500/20">
+              <Radio className="w-12 h-12 mx-auto mb-3 text-green-400" />
+              <h3 className="font-bold text-white mb-2">Roteiros IA Oscar</h3>
+              <p className="text-sm text-gray-400 mb-3">GPT-4 + Claude Premium</p>
+              <Badge variant="outline" className="border-purple-500/50 text-purple-400">
+                <Trophy className="w-3 h-3 mr-1" />
+                Auto-Criativo
+              </Badge>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Music Generation */}
-      <Card className="glass-effect border-white/10">
+      {/* Voice Generation Section */}
+      <Card className="backdrop-blur-md bg-white/5 border-white/10">
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Music className="w-5 h-5 text-radio-cyan" />
-            <span>Geração Musical</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {musicGenerators.map((generator, index) => (
-              <div key={index} className="text-center p-3 rounded-lg bg-white/5">
-                <Headphones className="w-6 h-6 mx-auto mb-2 text-radio-cyan" />
-                <p className="text-sm font-medium text-white">{generator.name}</p>
-                <p className="text-xs text-gray-400">{generator.model}</p>
-                <Badge variant="outline" className="border-green-500/50 text-green-400 mt-1">
-                  {generator.status}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Custom Content Generation */}
-      <Card className="glass-effect border-white/10">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Zap className="w-5 h-5 text-radio-pink" />
-            <span>Gerador Personalizado</span>
+            <Mic className="w-5 h-5 text-purple-400" />
+            <span>Clonagem de Voz IA Oscar Premium</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">Prompt para IA</label>
-            <Textarea
-              value={customPrompt}
-              onChange={(e) => setCustomPrompt(e.target.value)}
-              placeholder="Descreva o conteúdo que deseja gerar (ex: 'Crie uma vinheta energética para programa matinal')"
-              className="glass-effect border-white/20 bg-white/5 text-white placeholder-gray-400 min-h-20"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <Label>Voz IA Selecionada</Label>
+              <select 
+                className="w-full p-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                value={voiceSettings.selectedVoice}
+                onChange={(e) => setVoiceSettings({...voiceSettings, selectedVoice: e.target.value})}
+              >
+                <option value="Voz Aurora Premium">Voz Aurora Premium - Energética Oscar</option>
+                <option value="Voz Creator Elite">Voz Creator Elite - Criativa Suprema</option>
+                <option value="Voz Nexus Master">Voz Nexus Master - Informativa Top</option>
+                <option value="Voz Harmony Oscar">Voz Harmony Oscar - Harmoniosa Mundial</option>
+                <option value="Voz Zen Premium">Voz Zen Premium - Relaxante Elite</option>
+                <option value="Voz Prime Ultimate">Voz Prime Ultimate - Profissional Oscar</option>
+              </select>
+            </div>
+
+            <div className="space-y-3">
+              <Label>Tom Emocional Oscar: {voiceSettings.emotionalTone}%</Label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={voiceSettings.emotionalTone}
+                onChange={(e) => setVoiceSettings({...voiceSettings, emotionalTone: Number(e.target.value)})}
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
           </div>
 
-          {isGenerating && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <Label>Velocidade da Fala: {voiceSettings.speechSpeed}%</Label>
+              <input
+                type="range"
+                min="50"
+                max="150"
+                value={voiceSettings.speechSpeed}
+                onChange={(e) => setVoiceSettings({...voiceSettings, speechSpeed: Number(e.target.value)})}
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label>Precisão de Pronúncia: {voiceSettings.pronunciation}%</Label>
+              <input
+                type="range"
+                min="70"
+                max="100"
+                value={voiceSettings.pronunciation}
+                onChange={(e) => setVoiceSettings({...voiceSettings, pronunciation: Number(e.target.value)})}
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {isGenerating.voice && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Gerando conteúdo...</span>
-                <span>{Math.round(generationProgress)}%</span>
+                <span>Gerando Voz IA Oscar...</span>
+                <span>{Math.round(generationProgress.voice)}%</span>
               </div>
-              <Progress value={generationProgress} className="h-2" />
+              <Progress value={generationProgress.voice} className="h-2" />
             </div>
           )}
 
           <Button 
-            onClick={generateCustomContent}
-            disabled={isGenerating || !customPrompt.trim()}
-            className="w-full bg-radio-pink hover:bg-radio-pink/80"
+            onClick={generateVoice}
+            disabled={isGenerating.voice}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
           >
-            {isGenerating ? (
+            {isGenerating.voice ? (
               <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Gerando...
+                <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                Gerando Voz Oscar Premium...
               </>
             ) : (
               <>
-                <Zap className="w-4 h-4 mr-2" />
-                Gerar Conteúdo
+                <Mic className="w-4 h-4 mr-2" />
+                Gerar Voz IA Oscar
               </>
             )}
           </Button>
         </CardContent>
       </Card>
 
-      {/* Generated Content History */}
-      <Card className="glass-effect border-white/10">
+      {/* Music Generation Section */}
+      <Card className="backdrop-blur-md bg-white/5 border-white/10">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Brain className="w-5 h-5 text-radio-green" />
-              <span>Conteúdo Gerado Recentemente</span>
-            </div>
-            <Badge variant="outline" className="border-radio-purple/50 text-radio-purple">
-              {generatedContent.length} itens
-            </Badge>
+          <CardTitle className="flex items-center space-x-2">
+            <Music className="w-5 h-5 text-cyan-400" />
+            <span>Geração Musical IA Oscar Premium</span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3 max-h-64 overflow-y-auto">
-            {generatedContent.length === 0 ? (
-              <div className="text-center py-8">
-                <Bot className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-400">Nenhum conteúdo gerado ainda</p>
-                <p className="text-sm text-gray-500">O sistema gerará conteúdo automaticamente</p>
-              </div>
-            ) : (
-              generatedContent.map((content) => (
-                <div key={content.id} className="flex items-center space-x-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-radio-purple to-radio-cyan flex items-center justify-center">
-                      {getTypeIcon(content.type)}
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-white truncate">{content.title}</h3>
-                    <p className="text-sm text-gray-400 truncate">{content.content}</p>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-xs text-gray-500">{formatDuration(content.duration)}</span>
-                      <span className="text-xs text-gray-500">•</span>
-                      <span className="text-xs text-gray-500">
-                        {content.timestamp.toLocaleTimeString()}
-                      </span>
-                    </div>
-                  </div>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <Label>Gênero Musical Oscar</Label>
+              <select 
+                className="w-full p-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                value={musicSettings.genre}
+                onChange={(e) => setMusicSettings({...musicSettings, genre: e.target.value})}
+              >
+                <option value="Eletrônica Cósmica">Eletrônica Cósmica Oscar</option>
+                <option value="Synthwave Premium">Synthwave Premium Elite</option>
+                <option value="Ambient Espacial">Ambient Espacial Supremo</option>
+                <option value="Trap Futurista">Trap Futurista Oscar</option>
+                <option value="Jazz Moderno">Jazz Moderno Premium</option>
+                <option value="Rock Alternativo">Rock Alternativo Elite</option>
+              </select>
+            </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-                      <Play className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-                      <Shuffle className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
+            <div className="space-y-3">
+              <Label>Mood/Atmosfera</Label>
+              <select 
+                className="w-full p-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                value={musicSettings.mood}
+                onChange={(e) => setMusicSettings({...musicSettings, mood: e.target.value})}
+              >
+                <option value="Energético">Energético Oscar</option>
+                <option value="Relaxante">Relaxante Premium</option>
+                <option value="Épico">Épico Mundial</option>
+                <option value="Melancólico">Melancólico Elite</option>
+                <option value="Aventureiro">Aventureiro Supremo</option>
+                <option value="Romântico">Romântico Oscar</option>
+              </select>
+            </div>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <Label>Duração (segundos): {musicSettings.duration}</Label>
+              <input
+                type="range"
+                min="60"
+                max="300"
+                value={musicSettings.duration}
+                onChange={(e) => setMusicSettings({...musicSettings, duration: Number(e.target.value)})}
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label>BPM: {musicSettings.bpm}</Label>
+              <input
+                type="range"
+                min="60"
+                max="180"
+                value={musicSettings.bpm}
+                onChange={(e) => setMusicSettings({...musicSettings, bpm: Number(e.target.value)})}
+                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+          </div>
+
+          {isGenerating.music && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Gerando Música IA Oscar...</span>
+                <span>{Math.round(generationProgress.music)}%</span>
+              </div>
+              <Progress value={generationProgress.music} className="h-2" />
+            </div>
+          )}
+
+          <Button 
+            onClick={generateMusic}
+            disabled={isGenerating.music}
+            className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+          >
+            {isGenerating.music ? (
+              <>
+                <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                Gerando Música Oscar Premium...
+              </>
+            ) : (
+              <>
+                <Music className="w-4 h-4 mr-2" />
+                Gerar Música IA Oscar
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Content Generation Section */}
+      <Card className="backdrop-blur-md bg-white/5 border-white/10">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Brain className="w-5 h-5 text-green-400" />
+            <span>Geração de Roteiros IA Oscar Premium</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <Label>Prompt Criativo Oscar</Label>
+            <Textarea 
+              placeholder="Digite o tema ou conceito para gerar conteúdo de rádio oscar premium..."
+              className="backdrop-blur-md bg-white/10 border-white/20 text-white placeholder-gray-400 min-h-20"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+              <span className="text-sm">Notícias IA</span>
+              <Switch defaultChecked />
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+              <span className="text-sm">Curiosidades</span>
+              <Switch defaultChecked />
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+              <span className="text-sm">Interação Ouvintes</span>
+              <Switch defaultChecked />
+            </div>
+          </div>
+
+          {isGenerating.content && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Gerando Conteúdo Oscar...</span>
+                <span>{Math.round(generationProgress.content)}%</span>
+              </div>
+              <Progress value={generationProgress.content} className="h-2" />
+            </div>
+          )}
+
+          <Button 
+            onClick={generateContent}
+            disabled={isGenerating.content}
+            className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600"
+          >
+            {isGenerating.content ? (
+              <>
+                <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                Gerando Conteúdo Oscar Premium...
+              </>
+            ) : (
+              <>
+                <Brain className="w-4 h-4 mr-2" />
+                Gerar Roteiro IA Oscar
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
     </div>
