@@ -71,6 +71,8 @@ This project is built with:
 ## Features
 
 - Autoplay the first playlist track once the playlist loads
+- Browsers may block autoplay with sound. If playback doesn't start,
+  click the Play button to begin streaming.
 
 ## How can I deploy this project?
 
