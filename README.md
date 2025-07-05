@@ -36,6 +36,14 @@ npm i
 npm run dev
 ```
 
+## Troubleshooting
+
+If the site appears blank when opened in the browser, make sure the development
+server is running. After installing dependencies, run `npm run dev` and visit the
+local URL printed in the terminal. Opening `index.html` directly without the
+Vite server will result in a blank page because the compiled assets are served
+by Vite.
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).
@@ -59,6 +67,12 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+
+## Features
+
+- Autoplay the first playlist track once the playlist loads
+- Browsers may block autoplay with sound. If playback doesn't start,
+  click the Play button to begin streaming.
 
 ## How can I deploy this project?
 

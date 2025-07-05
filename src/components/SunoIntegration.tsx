@@ -19,7 +19,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 
 interface SunoTrack {
-  [key: string]: any; // Add index signature for JSON compatibility
+  [key: string]: unknown;
   id: string;
   title: string;
   description: string;
@@ -159,10 +159,11 @@ const SunoIntegration = () => {
         title: "Música importada!",
         description: `"${track.title}" foi adicionada à sua rádio`,
       });
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       toast({
         title: "Erro",
-        description: error.message,
+        description: err.message,
         variant: "destructive",
       });
     }
