@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,7 @@ const AdvancedPlaylist = () => {
   const { toast } = useToast();
 
   // Carregar tracks do banco de dados
-  const loadTracks = async () => {
+  const loadTracks = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -101,7 +101,7 @@ const AdvancedPlaylist = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   // Criar playlist automática baseada em gênero ou mood
   const createSmartPlaylist = (type: 'genre' | 'mood' | 'ai' | 'trending') => {
@@ -201,7 +201,7 @@ const AdvancedPlaylist = () => {
 
   useEffect(() => {
     loadTracks();
-  }, []);
+  }, [loadTracks]);
 
   return (
     <div className="space-y-6">

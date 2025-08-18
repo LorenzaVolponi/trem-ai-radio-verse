@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +45,7 @@ const SunoIntegration = () => {
   const { toast } = useToast();
 
   // Simular busca no Suno (@groovebot profile)
-  const fetchSunoTracks = async () => {
+  const fetchSunoTracks = useCallback(async () => {
     setLoading(true);
     try {
       // Simulando dados do perfil @groovebot
@@ -95,7 +95,7 @@ const SunoIntegration = () => {
       ];
 
       setTracks(mockTracks);
-      
+
       toast({
         title: "Músicas carregadas!",
         description: `${mockTracks.length} faixas encontradas do @groovebot`,
@@ -109,7 +109,7 @@ const SunoIntegration = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   const importTrackToRadio = async (track: SunoTrack) => {
     if (!user) {
@@ -183,7 +183,7 @@ const SunoIntegration = () => {
 
   useEffect(() => {
     fetchSunoTracks();
-  }, []);
+  }, [fetchSunoTracks]);
 
   return (
     <div className="space-y-6">

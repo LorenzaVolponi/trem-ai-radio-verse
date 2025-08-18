@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -231,7 +231,7 @@ const VoiceCloningSystem = () => {
     }
   };
 
-  const loadVoiceClones = async () => {
+  const loadVoiceClones = useCallback(async () => {
     if (!user) return;
 
     const { data, error } = await supabase
@@ -245,14 +245,14 @@ const VoiceCloningSystem = () => {
       return;
     }
 
-      const formattedClones: VoiceClone[] = data.map(clone => {
-        interface ModelData {
-          quality_score?: number;
-          training_duration?: number;
-        }
-        const modelData = clone.model_data as ModelData | null;
-        const qualityScore = modelData?.quality_score ?? 85;
-        const trainingDuration = modelData?.training_duration ?? 0;
+    const formattedClones: VoiceClone[] = data.map(clone => {
+      interface ModelData {
+        quality_score?: number;
+        training_duration?: number;
+      }
+      const modelData = clone.model_data as ModelData | null;
+      const qualityScore = modelData?.quality_score ?? 85;
+      const trainingDuration = modelData?.training_duration ?? 0;
 
       return {
         id: clone.id,
@@ -267,7 +267,7 @@ const VoiceCloningSystem = () => {
     });
 
     setVoiceClones(formattedClones);
-  };
+  }, [user]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -275,11 +275,11 @@ const VoiceCloningSystem = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       loadVoiceClones();
     }
-  }, [user]);
+  }, [user, loadVoiceClones]);
 
   return (
     <div className="space-y-6">
