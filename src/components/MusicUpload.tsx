@@ -123,13 +123,14 @@ const MusicUpload = () => {
       setAudioFile(null);
       setCoverFile(null);
 
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Erro inesperado';
+        toast({
+          title: "Erro",
+          description: message,
+          variant: "destructive",
+        });
+      } finally {
       setLoading(false);
     }
   };

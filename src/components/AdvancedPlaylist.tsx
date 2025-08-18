@@ -91,10 +91,11 @@ const AdvancedPlaylist = () => {
       }));
 
       setTracks(formattedTracks);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro inesperado';
       toast({
         title: "Erro",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -119,12 +120,15 @@ const AdvancedPlaylist = () => {
           .slice(0, 20);
         playlistName = 'Trending Now';
         break;
-      case 'genre':
+      case 'genre': {
         const genres = [...new Set(tracks.map(t => t.genre).filter(Boolean))];
         const randomGenre = genres[Math.floor(Math.random() * genres.length)];
-        filteredTracks = tracks.filter(track => track.genre === randomGenre).slice(0, 15);
+        filteredTracks = tracks
+          .filter(track => track.genre === randomGenre)
+          .slice(0, 15);
         playlistName = `${randomGenre} Mix`;
         break;
+      }
       case 'mood':
         filteredTracks = tracks.filter(track => track.liked).slice(0, 25);
         playlistName = 'Favoritas';

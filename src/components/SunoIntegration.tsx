@@ -18,21 +18,21 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
-interface SunoTrack {
-  [key: string]: any; // Add index signature for JSON compatibility
-  id: string;
-  title: string;
-  description: string;
-  audio_url: string;
-  video_url: string;
-  image_url: string;
-  duration: number;
-  created_at: string;
-  tags: string[];
-  is_public: boolean;
-  user_id: string;
-  username: string;
-}
+  interface SunoTrack {
+    [key: string]: unknown; // Add index signature for JSON compatibility
+    id: string;
+    title: string;
+    description: string;
+    audio_url: string;
+    video_url: string;
+    image_url: string;
+    duration: number;
+    created_at: string;
+    tags: string[];
+    is_public: boolean;
+    user_id: string;
+    username: string;
+  }
 
 const SunoIntegration = () => {
   const [tracks, setTracks] = useState<SunoTrack[]>([]);
@@ -159,13 +159,14 @@ const SunoIntegration = () => {
         title: "Música importada!",
         description: `"${track.title}" foi adicionada à sua rádio`,
       });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Erro inesperado';
+        toast({
+          title: "Erro",
+          description: message,
+          variant: "destructive",
+        });
+      }
   };
 
   const formatDuration = (seconds: number) => {
