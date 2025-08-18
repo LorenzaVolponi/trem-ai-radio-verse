@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,21 +18,21 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
-interface SunoTrack {
-  [key: string]: any; // Add index signature for JSON compatibility
-  id: string;
-  title: string;
-  description: string;
-  audio_url: string;
-  video_url: string;
-  image_url: string;
-  duration: number;
-  created_at: string;
-  tags: string[];
-  is_public: boolean;
-  user_id: string;
-  username: string;
-}
+  interface SunoTrack {
+    [key: string]: unknown; // Add index signature for JSON compatibility
+    id: string;
+    title: string;
+    description: string;
+    audio_url: string;
+    video_url: string;
+    image_url: string;
+    duration: number;
+    created_at: string;
+    tags: string[];
+    is_public: boolean;
+    user_id: string;
+    username: string;
+  }
 
 const SunoIntegration = () => {
   const [tracks, setTracks] = useState<SunoTrack[]>([]);
@@ -45,7 +45,7 @@ const SunoIntegration = () => {
   const { toast } = useToast();
 
   // Simular busca no Suno (@groovebot profile)
-  const fetchSunoTracks = async () => {
+  const fetchSunoTracks = useCallback(async () => {
     setLoading(true);
     try {
       // Simulando dados do perfil @groovebot
@@ -95,7 +95,7 @@ const SunoIntegration = () => {
       ];
 
       setTracks(mockTracks);
-      
+
       toast({
         title: "Músicas carregadas!",
         description: `${mockTracks.length} faixas encontradas do @groovebot`,
@@ -109,7 +109,7 @@ const SunoIntegration = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   const importTrackToRadio = async (track: SunoTrack) => {
     if (!user) {
@@ -159,13 +159,14 @@ const SunoIntegration = () => {
         title: "Música importada!",
         description: `"${track.title}" foi adicionada à sua rádio`,
       });
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Erro inesperado';
+        toast({
+          title: "Erro",
+          description: message,
+          variant: "destructive",
+        });
+      }
   };
 
   const formatDuration = (seconds: number) => {
@@ -182,7 +183,7 @@ const SunoIntegration = () => {
 
   useEffect(() => {
     fetchSunoTracks();
-  }, []);
+  }, [fetchSunoTracks]);
 
   return (
     <div className="space-y-6">

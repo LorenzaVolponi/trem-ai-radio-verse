@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,7 @@ const AdvancedPlaylist = () => {
   const { toast } = useToast();
 
   // Carregar tracks do banco de dados
-  const loadTracks = async () => {
+  const loadTracks = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -91,16 +91,17 @@ const AdvancedPlaylist = () => {
       }));
 
       setTracks(formattedTracks);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro inesperado';
       toast({
         title: "Erro",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   // Criar playlist automática baseada em gênero ou mood
   const createSmartPlaylist = (type: 'genre' | 'mood' | 'ai' | 'trending') => {
@@ -119,12 +120,15 @@ const AdvancedPlaylist = () => {
           .slice(0, 20);
         playlistName = 'Trending Now';
         break;
-      case 'genre':
+      case 'genre': {
         const genres = [...new Set(tracks.map(t => t.genre).filter(Boolean))];
         const randomGenre = genres[Math.floor(Math.random() * genres.length)];
-        filteredTracks = tracks.filter(track => track.genre === randomGenre).slice(0, 15);
+        filteredTracks = tracks
+          .filter(track => track.genre === randomGenre)
+          .slice(0, 15);
         playlistName = `${randomGenre} Mix`;
         break;
+      }
       case 'mood':
         filteredTracks = tracks.filter(track => track.liked).slice(0, 25);
         playlistName = 'Favoritas';
@@ -197,7 +201,7 @@ const AdvancedPlaylist = () => {
 
   useEffect(() => {
     loadTracks();
-  }, []);
+  }, [loadTracks]);
 
   return (
     <div className="space-y-6">

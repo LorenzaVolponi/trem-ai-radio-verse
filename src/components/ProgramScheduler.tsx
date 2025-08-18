@@ -90,14 +90,16 @@ const ProgramScheduler = () => {
     }
   ]);
 
-  const [newProgram, setNewProgram] = useState({
-    name: '',
-    host: '',
-    startTime: '',
-    duration: 60,
-    genre: '',
-    type: 'ai-generated' as const
-  });
+    type ProgramType = 'ai-generated' | 'music-only' | 'live';
+
+    const [newProgram, setNewProgram] = useState({
+      name: '',
+      host: '',
+      startTime: '',
+      duration: 60,
+      genre: '',
+      type: 'ai-generated' as ProgramType
+    });
 
   const [autoScheduling, setAutoScheduling] = useState(true);
   const [adaptiveContent, setAdaptiveContent] = useState(true);
@@ -361,7 +363,12 @@ const ProgramScheduler = () => {
             
             <select
               value={newProgram.type}
-              onChange={(e) => setNewProgram({...newProgram, type: e.target.value as any})}
+                onChange={(e) =>
+                  setNewProgram({
+                    ...newProgram,
+                    type: e.target.value as ProgramType,
+                  })
+                }
               className="glass-effect border-white/20 bg-white/5 text-white rounded-md px-3 py-2"
             >
               <option value="ai-generated">IA Generated</option>

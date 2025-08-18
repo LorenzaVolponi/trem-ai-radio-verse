@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -68,11 +68,35 @@ const AdvancedAudioPlayer: React.FC<AdvancedAudioPlayerProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Load tracks from database
+  const loadTracks = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('tracks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading tracks:', error);
+      return;
+    }
+
+    setPlaylist(data || []);
+  }, []);
+
+  const loadLikedTracks = useCallback(async () => {
+    if (!user) return;
+
+    // This would come from a likes table in a real implementation
+    // For now, we'll use localStorage
+    const liked = localStorage.getItem(`liked_tracks_${user.id}`);
+    if (liked) {
+      setLikedTracks(new Set(JSON.parse(liked)));
+    }
+  }, [user]);
+
   useEffect(() => {
     loadTracks();
     loadLikedTracks();
-  }, []);
+  }, [loadTracks, loadLikedTracks]);
 
   // Filter playlist based on search and genre
   useEffect(() => {
@@ -92,31 +116,6 @@ const AdvancedAudioPlayer: React.FC<AdvancedAudioPlayerProps> = ({
 
     setFilteredPlaylist(filtered);
   }, [playlist, searchTerm, genreFilter]);
-
-  const loadTracks = async () => {
-    const { data, error } = await supabase
-      .from('tracks')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error loading tracks:', error);
-      return;
-    }
-
-    setPlaylist(data || []);
-  };
-
-  const loadLikedTracks = async () => {
-    if (!user) return;
-
-    // This would come from a likes table in a real implementation
-    // For now, we'll use localStorage
-    const liked = localStorage.getItem(`liked_tracks_${user.id}`);
-    if (liked) {
-      setLikedTracks(new Set(JSON.parse(liked)));
-    }
-  };
 
   const playTrack = async (track: Track, trackIndex?: number) => {
     if (!audioRef.current) return;

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import StreamingStatusCard from './StreamingStatusCard';
 import CurrentTrackDisplay from './CurrentTrackDisplay';
@@ -48,12 +48,20 @@ const AutoStreamingEngine = () => {
 
   const { toast } = useToast();
 
-  // Auto-start streaming when component mounts
+  const startAutoStreaming = useCallback(() => {
+    setStreamState(prev => ({ ...prev, isLive: true }));
+    toast({
+      title: "Transmissão Iniciada Automaticamente",
+      description: "Sistema autogerenciável ativo 24/7",
+    });
+  }, [toast]);
+
+  // Auto-start streaming when component mounts or when auto mode is enabled
   useEffect(() => {
     if (streamState.autoMode) {
       startAutoStreaming();
     }
-  }, []);
+  }, [startAutoStreaming, streamState.autoMode]);
 
   // Simulate real-time metrics
   useEffect(() => {
@@ -81,14 +89,6 @@ const AutoStreamingEngine = () => {
 
     return () => clearInterval(interval);
   }, []);
-
-  const startAutoStreaming = () => {
-    setStreamState(prev => ({ ...prev, isLive: true }));
-    toast({
-      title: "Transmissão Iniciada Automaticamente",
-      description: "Sistema autogerenciável ativo 24/7",
-    });
-  };
 
   const toggleAutoMode = () => {
     setStreamState(prev => ({ ...prev, autoMode: !prev.autoMode }));
