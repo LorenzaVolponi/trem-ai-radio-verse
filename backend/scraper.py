@@ -9,6 +9,7 @@ request.
 from __future__ import annotations
 
 import logging
+import time
 from datetime import datetime
 from typing import List
 
@@ -49,8 +50,17 @@ def fetch_trending_tracks(limit: int = 20) -> List[Track]:
     url = "https://suno.com/trending"
     logger.debug("Fetching trending tracks from %s", url)
 
-    response = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
-    response.raise_for_status()
+    for attempt in range(3):
+        try:
+            response = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+            response.raise_for_status()
+            break
+        except Exception as exc:
+            logger.warning("Trending request attempt %d failed: %s", attempt + 1, exc)
+            time.sleep(1)
+    else:
+        return []
+
     soup = BeautifulSoup(response.text, "html.parser")
 
     tracks: List[Track] = []

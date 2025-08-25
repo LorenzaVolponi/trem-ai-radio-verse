@@ -1,18 +1,21 @@
 """Streaming utilities using FFmpeg for Icecast output."""
 from __future__ import annotations
 
+import logging
 import os
+import random
 import subprocess
+import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-import random
-from dataclasses import dataclass
-
 import requests
 
-from . import tts, scraper
+from . import scraper, tts
 from .scraper import Track
+
+logger = logging.getLogger(__name__)
 
 
 class IcecastStreamer:
@@ -31,6 +34,8 @@ class IcecastStreamer:
         self.mount = mount
         self.user = user
         self.password = password
+        self.current_process: Optional[subprocess.Popen] = None
+        self._was_skipped = False
 
     def _base_cmd(self) -> list[str]:
         url = f"icecast://{self.user}:{self.password}@{self.host}:{self.port}/{self.mount}"
@@ -51,14 +56,38 @@ class IcecastStreamer:
         ]
 
     def stream_file(self, file_path: Path) -> None:
-        """Send a local audio file to the Icecast server.
+        """Send a local audio file to the Icecast server with retries."""
 
-        Volume or fade effects between music and announcements can be applied
-        by extending the FFmpeg command with filter arguments.
-        """
         cmd = self._base_cmd()
         cmd[cmd.index("-i") + 1] = str(file_path)
-        subprocess.run(cmd, check=True)
+
+        for attempt in range(3):
+            try:
+                logger.debug("Streaming %s (attempt %d)", file_path, attempt + 1)
+                self.current_process = subprocess.Popen(cmd)
+                self.current_process.wait()
+                if self._was_skipped:
+                    logger.info("Streaming of %s skipped", file_path)
+                    break
+                if self.current_process.returncode == 0:
+                    break
+                raise subprocess.CalledProcessError(self.current_process.returncode, cmd)
+            except Exception as exc:
+                logger.warning("Stream attempt %d failed: %s", attempt + 1, exc)
+                time.sleep(1)
+            finally:
+                if self.current_process:
+                    self.current_process.kill()
+                    self.current_process = None
+                    self._was_skipped = False
+        else:
+            logger.error("Failed to stream file %s after retries", file_path)
+
+    def skip_current(self) -> None:
+        """Terminate the current FFmpeg process to skip the track."""
+        if self.current_process and self.current_process.poll() is None:
+            self._was_skipped = True
+            self.current_process.terminate()
 
 
 class RadioScheduler:
@@ -77,25 +106,45 @@ class RadioScheduler:
         now_playing.suno_url = track.page_url
         now_playing.announcement = ""
 
-        file_path = download_track(track.audio_url)
-        self.streamer.stream_file(file_path)
+        file_path: Path | None = None
+        try:
+            file_path = download_track(track.audio_url)
+            self.streamer.stream_file(file_path)
+        except Exception as exc:
+            logger.warning("Failed to play %s: %s", track.title, exc)
+        finally:
+            if file_path:
+                file_path.unlink(missing_ok=True)
 
         self.played_since_announcement += 1
         if self.played_since_announcement >= 2:
             self.played_since_announcement = 0
             announce(self.streamer)
 
+    def skip_current(self) -> None:
+        """Skip the currently playing track."""
+        self.streamer.skip_current()
+        self.played_since_announcement = 0
+
 
 def download_track(url: str) -> Path:
-    """Download ``url`` to a temporary file and return its path."""
-    response = requests.get(url, timeout=30)
-    response.raise_for_status()
+    """Download ``url`` to a temporary file and return its path with retries."""
+
     tmp = Path("tmp")
     tmp.mkdir(exist_ok=True)
     filename = tmp / Path(url).name
-    with open(filename, "wb") as fh:
-        fh.write(response.content)
-    return filename
+
+    for attempt in range(3):
+        try:
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            with open(filename, "wb") as fh:
+                fh.write(response.content)
+            return filename
+        except Exception as exc:
+            logger.warning("Download attempt %d failed: %s", attempt + 1, exc)
+            time.sleep(1)
+    raise RuntimeError(f"Failed to download {url}")
 
 
 def frase_ia_emocional() -> str:
@@ -110,14 +159,19 @@ def announce(streamer: IcecastStreamer, message: Optional[str] = None) -> None:
     if message is None:
         message = frase_ia_emocional()
 
-    speech = tts.synthesize(message)
-    now_playing.announcement = message
-    streamer.stream_file(speech)
-    speech.unlink(missing_ok=True)
+    try:
+        speech = tts.synthesize(message)
+        now_playing.announcement = message
+        streamer.stream_file(speech)
+    except Exception as exc:
+        logger.warning("Failed to announce '%s': %s", message, exc)
+    finally:
+        speech.unlink(missing_ok=True)
 
 
 # ---------------------------------------------------------------------------
 # State & helpers
+# ---------------------------------------------------------------------------
 
 
 @dataclass
@@ -166,6 +220,8 @@ def radio_loop(scheduler: RadioScheduler) -> None:
             playlist = scraper.get_trending_cache()
 
         for track in playlist:
-            scheduler.play_track(track)
-
-
+            try:
+                scheduler.play_track(track)
+            except Exception as exc:
+                logger.warning("Playback error: %s", exc)
+                continue

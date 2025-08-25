@@ -20,6 +20,13 @@
   <script>
     const STREAM_URL = (window.ICECAST_STREAM || '');
     const player = document.getElementById('player');
+    document.getElementById('shuffle').addEventListener('click', async () => {
+      try {
+        await fetch('/skip', { method: "POST" });
+      } catch (err) {
+        console.error(err);
+      }
+    });
     player.src = STREAM_URL;
 
     async function refresh() {

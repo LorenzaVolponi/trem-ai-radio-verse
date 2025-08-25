@@ -1,43 +1,54 @@
-"""Text-to-speech utilities for the radio announcer."""
+"""Text-to-speech utilities for the radio announcer using Coqui TTS."""
 from __future__ import annotations
 
+import hashlib
 import os
+from functools import lru_cache
 from pathlib import Path
-import uuid
 
-from gtts import gTTS
-from pydub import AudioSegment
+from TTS.api import TTS
 
 TMP_DIR = Path(os.getenv("TTS_TMP", "tmp"))
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 
+# Default model; can be overridden via env var ``TTS_MODEL``
+MODEL_NAME = os.getenv("TTS_MODEL", "tts_models/multilingual/multi-dataset/xtts_v2")
 
-def synthesize(message: str, language: str = "pt") -> Path:
+
+@lru_cache(maxsize=1)
+def _load_model() -> TTS:
+    """Lazy-load the TTS model to avoid long startup times."""
+    return TTS(model_name=MODEL_NAME)
+
+
+def synthesize(message: str, voice: str = "random", emotion: str = "Neutral") -> Path:
     """Generate a speech audio file from ``message``.
-
-    The function uses ``gTTS`` to create an MP3 file and then converts it to
-    WAV so it can be mixed easily by FFmpeg.
 
     Parameters
     ----------
     message: str
         Text to be spoken.
-    language: str
-        Language code. Defaults to Portuguese.
+    voice: str
+        Voice identifier supported by the model. ``"random"`` by default.
+    emotion: str
+        Emotion/style indicator supported by the model.
 
     Returns
     -------
     Path
         Path to the generated WAV file.
     """
-    mp3_path = TMP_DIR / f"announcement_{uuid.uuid4().hex}.mp3"
-    wav_path = mp3_path.with_suffix(".wav")
+    # Cache by hashing the text + voice + emotion
+    cache_key = hashlib.sha1(f"{voice}|{emotion}|{message}".encode("utf-8")).hexdigest()
+    wav_path = TMP_DIR / f"tts_{cache_key}.wav"
+    if wav_path.exists():
+        return wav_path
 
-    tts = gTTS(text=message, lang=language)
-    tts.save(str(mp3_path))
+    tts = _load_model()
+    # Some models may not support speaker/emotion params; ignore if unsupported
+    try:
+        tts.tts_to_file(text=message, speaker=voice, emotion=emotion, file_path=str(wav_path))
+    except TypeError:
+        tts.tts_to_file(text=message, file_path=str(wav_path))
 
-    # Convert to WAV for easier mixing
-    AudioSegment.from_mp3(mp3_path).export(wav_path, format="wav")
-    mp3_path.unlink(missing_ok=True)
     return wav_path
-

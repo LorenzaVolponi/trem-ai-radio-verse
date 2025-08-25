@@ -43,6 +43,13 @@ def now_playing_endpoint() -> NowPlayingResponse:
     """Return metadata about the current track and last announcement."""
     return NowPlayingResponse(**now_playing.__dict__)
 
+@app.post("/skip")
+def skip_track() -> dict[str, str]:
+    """Skip the currently playing track."""
+    scheduler.skip_current()
+    return {"status": "skipping"}
+
+
 
 # Instantiate scheduler for long‑running radio loop (not started automatically)
 scheduler = build_scheduler_from_env()
