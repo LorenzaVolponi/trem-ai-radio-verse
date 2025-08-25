@@ -71,3 +71,41 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Rádio Trem AI Backend
+
+This repository also contains a minimal FastAPI backend used for the Rádio Trem AI project.
+
+### Development
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+The API exposes three endpoints:
+
+- `/trending` – returns the current trending songs from Suno.
+- `/generate_announcement` – generates a text‑to‑speech MP3 for a given `message`.
+- `/current` – placeholder for metadata about the currently playing track.
+
+### Environment variables
+
+Configure the following variables to point to your Icecast server:
+
+```
+ICECAST_HOST=localhost
+ICECAST_PORT=8000
+ICECAST_MOUNT=stream.mp3
+ICECAST_USER=source
+ICECAST_PASSWORD=hackme
+```
+
+### Deployment on Replit
+
+1. Create a new Replit project and import this repository.
+2. In the **Shell**, install dependencies: `pip install -r backend/requirements.txt`.
+3. Add the environment variables above in the Replit secrets panel.
+4. Run `uvicorn backend.main:app --host 0.0.0.0 --port 8000` as the run command.
+5. Connect the stream to your external Icecast server.
