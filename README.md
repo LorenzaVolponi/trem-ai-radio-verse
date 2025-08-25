@@ -87,8 +87,8 @@ uvicorn main:app --reload
 The API exposes three endpoints:
 
 - `/trending` – returns the current trending songs from Suno.
-- `/generate_announcement` – generates a text‑to‑speech MP3 for a given `message`.
-- `/current` – placeholder for metadata about the currently playing track.
+- `/generate_announcement` – POST a JSON body `{ "text": "..." }` and receive a WAV file.
+- `/now_playing` – metadata about the current track and last announcement.
 
 ### Environment variables
 
@@ -109,3 +109,6 @@ ICECAST_PASSWORD=hackme
 3. Add the environment variables above in the Replit secrets panel.
 4. Run `uvicorn backend.main:app --host 0.0.0.0 --port 8000` as the run command.
 5. Connect the stream to your external Icecast server.
+
+For a very small demo player, open `public/radio.html` and set `ICECAST_STREAM`
+to the URL of your Icecast mount.

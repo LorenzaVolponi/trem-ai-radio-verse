@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rádio Trem AI</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 2rem; }
+    #track { font-size: 1.2rem; margin-top: 1rem; }
+    #announcement { color: #555; margin-top: 0.5rem; }
+    button { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Rádio Trem AI</h1>
+  <audio id="player" controls autoplay src=""></audio>
+  <div id="track">Carregando...</div>
+  <div id="announcement"></div>
+  <button id="shuffle">tocar diferente</button>
+
+  <script>
+    const STREAM_URL = (window.ICECAST_STREAM || '');
+    const player = document.getElementById('player');
+    player.src = STREAM_URL;
+
+    async function refresh() {
+      try {
+        const resp = await fetch('/now_playing');
+        const data = await resp.json();
+        document.getElementById('track').textContent = `${data.title} – ${data.artist}`;
+        document.getElementById('announcement').textContent = data.announcement;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>

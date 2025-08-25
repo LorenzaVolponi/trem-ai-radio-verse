@@ -6,9 +6,12 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
+import random
+from dataclasses import dataclass
+
 import requests
 
-from . import tts
+from . import tts, scraper
 from .scraper import Track
 
 
@@ -48,6 +51,11 @@ class IcecastStreamer:
         ]
 
     def stream_file(self, file_path: Path) -> None:
+        """Send a local audio file to the Icecast server.
+
+        Volume or fade effects between music and announcements can be applied
+        by extending the FFmpeg command with filter arguments.
+        """
         cmd = self._base_cmd()
         cmd[cmd.index("-i") + 1] = str(file_path)
         subprocess.run(cmd, check=True)
@@ -61,8 +69,17 @@ class RadioScheduler:
         self.played_since_announcement = 0
 
     def play_track(self, track: Track) -> None:
+        """Stream ``track`` and trigger announcements periodically."""
+
+        # Update global now playing information
+        now_playing.title = track.title
+        now_playing.artist = track.artist
+        now_playing.suno_url = track.page_url
+        now_playing.announcement = ""
+
         file_path = download_track(track.audio_url)
         self.streamer.stream_file(file_path)
+
         self.played_since_announcement += 1
         if self.played_since_announcement >= 2:
             self.played_since_announcement = 0
@@ -84,8 +101,54 @@ def download_track(url: str) -> Path:
 def announce(streamer: IcecastStreamer, message: Optional[str] = None) -> None:
     """Generate a poetic announcement and stream it."""
     if message is None:
-        message = "Another day, another dream on Rádio Trem AI."
+        message = random.choice(ANNOUNCEMENTS)
     speech = tts.synthesize(message)
+    now_playing.announcement = message
     streamer.stream_file(speech)
     speech.unlink(missing_ok=True)
+
+
+# ---------------------------------------------------------------------------
+# State & helpers
+
+
+@dataclass
+class NowPlaying:
+    """Metadata about the currently playing track and last announcement."""
+
+    title: str = ""
+    artist: str = ""
+    suno_url: str = ""
+    announcement: str = ""
+
+
+now_playing = NowPlaying()
+
+
+ANNOUNCEMENTS = [
+    "Estamos entrando na estação da imaginação.",
+    "Essa próxima faixa foi escolhida pelo trem do tempo.",
+    "A Rádio Trem AI respira com você.",
+]
+
+
+def build_scheduler_from_env() -> RadioScheduler:
+    """Create a ``RadioScheduler`` using Icecast credentials from the env."""
+
+    host = os.getenv("ICECAST_HOST", "localhost")
+    port = int(os.getenv("ICECAST_PORT", "8000"))
+    mount = os.getenv("ICECAST_MOUNT", "stream.mp3")
+    user = os.getenv("ICECAST_USER", "source")
+    password = os.getenv("ICECAST_PASSWORD", "hackme")
+
+    streamer = IcecastStreamer(host, port, mount, user, password)
+    return RadioScheduler(streamer)
+
+
+def radio_loop(scheduler: RadioScheduler) -> None:
+    """Continuously stream trending tracks and announcements."""
+    while True:
+        for track in scraper.fetch_trending():
+            scheduler.play_track(track)
+
 
