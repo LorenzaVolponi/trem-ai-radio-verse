@@ -15,8 +15,9 @@ app = FastAPI(title="Rádio Trem AI")
 
 @app.get("/trending", response_model=List[scraper.Track])
 def get_trending(limit: int = 20) -> List[scraper.Track]:
-    """Return a list of trending tracks from Suno."""
-    return scraper.fetch_trending(limit)
+    """Return cached trending tracks."""
+
+    return scraper.get_trending_cache()[:limit]
 
 
 class AnnouncementRequest(BaseModel):

@@ -98,10 +98,18 @@ def download_track(url: str) -> Path:
     return filename
 
 
+def frase_ia_emocional() -> str:
+    """Return a random poetic phrase for announcements."""
+
+    return random.choice(ANNOUNCEMENTS)
+
+
 def announce(streamer: IcecastStreamer, message: Optional[str] = None) -> None:
     """Generate a poetic announcement and stream it."""
+
     if message is None:
-        message = random.choice(ANNOUNCEMENTS)
+        message = frase_ia_emocional()
+
     speech = tts.synthesize(message)
     now_playing.announcement = message
     streamer.stream_file(speech)
@@ -129,6 +137,9 @@ ANNOUNCEMENTS = [
     "Estamos entrando na estação da imaginação.",
     "Essa próxima faixa foi escolhida pelo trem do tempo.",
     "A Rádio Trem AI respira com você.",
+    "Essa é uma criação sonora feita por uma inteligência sem ego.",
+    "Deixe-se levar por esse som criado no futuro.",
+    "Mais uma faixa gerada por IA... mas sentida por você.",
 ]
 
 
@@ -146,9 +157,15 @@ def build_scheduler_from_env() -> RadioScheduler:
 
 
 def radio_loop(scheduler: RadioScheduler) -> None:
-    """Continuously stream trending tracks and announcements."""
+    """Continuously stream cached trending tracks and announcements."""
+
     while True:
-        for track in scraper.fetch_trending():
+        playlist = scraper.get_trending_cache()
+        if not playlist:
+            scraper.update_trending_cache()
+            playlist = scraper.get_trending_cache()
+
+        for track in playlist:
             scheduler.play_track(track)
 
 
