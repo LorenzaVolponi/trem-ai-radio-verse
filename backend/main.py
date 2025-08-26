@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 from typing import List
+import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 
 from . import scraper, tts
@@ -19,6 +21,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/")
+def index() -> HTMLResponse:
+    """Serve a tiny HTML player pointing to the configured Icecast stream."""
+    host = os.getenv("ICECAST_HOST", "localhost")
+    port = os.getenv("ICECAST_PORT", "8000")
+    mount = os.getenv("ICECAST_MOUNT", "stream.mp3")
+    stream_url = f"http://{host}:{port}/{mount}"
+    html_path = Path(__file__).resolve().parent.parent / "public" / "radio.html"
+    html = html_path.read_text(encoding="utf-8")
+    inject = f"<script>window.ICECAST_STREAM='{stream_url}';</script>"
+    html = html.replace("</head>", inject + "</head>")
+    return HTMLResponse(html)
 
 
 @app.get("/trending", response_model=List[scraper.Track])

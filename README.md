@@ -114,6 +114,6 @@ CROSSFADE_DURATION=1.5  # seconds between tracks
 3. Add the environment variables above in the Replit secrets panel.
 4. Set the run command to `python run_all.py` so the API and radio loop start together.
 5. Connect the stream to your external Icecast server.
-
-For a very small demo player, open `public/radio.html` and set `ICECAST_STREAM`
-to the URL of your Icecast mount.
+With the server running, visit the root URL (`/`) to see a minimal HTML
+player. It automatically points to your Icecast mount based on the variables
+configured above.
