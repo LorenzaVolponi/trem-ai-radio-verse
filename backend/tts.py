@@ -6,7 +6,12 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from TTS.api import TTS
+try:
+    from TTS.api import TTS
+except Exception:  # pragma: no cover - optional dependency
+    TTS = None  # type: ignore
+
+from .voices import ensure_voice
 
 TMP_DIR = Path(os.getenv("TTS_TMP", "tmp"))
 TMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -18,6 +23,8 @@ MODEL_NAME = os.getenv("TTS_MODEL", "tts_models/multilingual/multi-dataset/xtts_
 @lru_cache(maxsize=1)
 def _load_model() -> TTS:
     """Lazy-load the TTS model to avoid long startup times."""
+    if TTS is None:
+        raise RuntimeError("TTS library is not installed")
     return TTS(model_name=MODEL_NAME)
 
 
@@ -45,9 +52,18 @@ def synthesize(message: str, voice: str = "random", emotion: str = "Neutral") ->
         return wav_path
 
     tts = _load_model()
-    # Some models may not support speaker/emotion params; ignore if unsupported
+
+    kwargs = {"emotion": emotion}
+    if voice and voice != "random":
+        try:
+            speaker_path = ensure_voice(voice)
+            kwargs["speaker_wav"] = str(speaker_path)
+        except Exception:
+            # Fall back silently if voice retrieval fails
+            pass
+
     try:
-        tts.tts_to_file(text=message, speaker=voice, emotion=emotion, file_path=str(wav_path))
+        tts.tts_to_file(text=message, file_path=str(wav_path), **kwargs)
     except TypeError:
         tts.tts_to_file(text=message, file_path=str(wav_path))
 

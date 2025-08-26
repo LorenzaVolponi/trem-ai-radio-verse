@@ -90,8 +90,9 @@ The API exposes these endpoints:
 - `/now_playing` – metadata about the current track and last announcement.
 - `/history` – list of the latest played tracks and announcements.
 - `/skip` – skip the currently playing track.
+- `/voices` – list of cloned voices bundled with the project.
 
-`voice` and `emotion` are optional. Example values depend on the TTS model in use; with the default Coqui XTTS model, voices such as `random` or specific speaker IDs and emotions like `Neutral`, `Happy`, or `Sad` are available.
+`voice` and `emotion` are optional. Use `/voices` to discover available `voice` ids (e.g., `pt-br-female`, `pt-pt-male`, `en-male`). Emotions like `Neutral`, `Happy`, or `Sad` are supported by the default Coqui XTTS model.
 
 ### Environment variables
 

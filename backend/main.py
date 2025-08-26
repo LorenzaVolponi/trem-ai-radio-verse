@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 
 from . import scraper, tts
+from .voices import list_voices
 from .stream import build_scheduler_from_env, now_playing, get_history
 
 # Allow web players on other origins to call the API
@@ -42,6 +43,12 @@ def get_trending(limit: int = 20) -> List[scraper.Track]:
     """Return cached trending tracks."""
 
     return scraper.get_trending_cache()[:limit]
+
+
+@app.get("/voices")
+def voices_endpoint():
+    """List available cloned voices."""
+    return list_voices()
 
 
 class AnnouncementRequest(BaseModel):
