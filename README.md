@@ -71,3 +71,50 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Rádio Trem AI Backend
+
+This repository also contains a minimal FastAPI backend used for the Rádio Trem AI project.
+
+### Development
+
+```bash
+pip install -r backend/requirements.txt
+python run_all.py
+```
+
+The API exposes these endpoints:
+
+- `/trending` – returns the current trending songs from Suno.
+- `/generate_announcement` – POST a JSON body `{ "text": "...", "voice": "...", "emotion": "..." }` and receive a WAV file.
+- `/now_playing` – metadata about the current track and last announcement.
+- `/history` – list of the latest played tracks and announcements.
+- `/skip` – skip the currently playing track.
+- `/voices` – list of cloned voices bundled with the project.
+
+`voice` and `emotion` are optional. Use `/voices` to discover available `voice` ids (e.g., `pt-br-female`, `pt-pt-male`, `en-male`). Emotions like `Neutral`, `Happy`, or `Sad` are supported by the default Coqui XTTS model.
+
+### Environment variables
+
+Configure the following variables to point to your Icecast server:
+
+```
+ICECAST_HOST=localhost
+ICECAST_PORT=8000
+ICECAST_MOUNT=stream.mp3
+ICECAST_USER=source
+ICECAST_PASSWORD=hackme
+# Optional tuning
+CROSSFADE_DURATION=1.5  # seconds between tracks
+```
+
+### Deployment on Replit
+
+1. Create a new Replit project and import this repository.
+2. In the **Shell**, install dependencies: `pip install -r backend/requirements.txt`.
+3. Add the environment variables above in the Replit secrets panel.
+4. Set the run command to `python run_all.py` so the API and radio loop start together.
+5. Connect the stream to your external Icecast server.
+With the server running, visit the root URL (`/`) to see a minimal HTML
+player. It automatically points to your Icecast mount based on the variables
+configured above.
