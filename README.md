@@ -79,9 +79,8 @@ This repository also contains a minimal FastAPI backend used for the Rádio Trem
 ### Development
 
 ```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
+pip install -r backend/requirements.txt
+python run_all.py
 ```
 
 The API exposes three endpoints:
@@ -102,6 +101,8 @@ ICECAST_PORT=8000
 ICECAST_MOUNT=stream.mp3
 ICECAST_USER=source
 ICECAST_PASSWORD=hackme
+# Optional tuning
+CROSSFADE_DURATION=1.5  # seconds between tracks
 ```
 
 ### Deployment on Replit
@@ -109,7 +110,7 @@ ICECAST_PASSWORD=hackme
 1. Create a new Replit project and import this repository.
 2. In the **Shell**, install dependencies: `pip install -r backend/requirements.txt`.
 3. Add the environment variables above in the Replit secrets panel.
-4. Run `uvicorn backend.main:app --host 0.0.0.0 --port 8000` as the run command.
+4. Set the run command to `python run_all.py` so the API and radio loop start together.
 5. Connect the stream to your external Icecast server.
 
 For a very small demo player, open `public/radio.html` and set `ICECAST_STREAM`

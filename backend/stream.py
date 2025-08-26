@@ -1,13 +1,18 @@
 """Streaming utilities using FFmpeg for Icecast output."""
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import os
 import random
+import sqlite3
 import subprocess
+import threading
 import time
+from collections import deque
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -17,6 +22,27 @@ from . import scraper, tts
 from .scraper import Track
 
 logger = logging.getLogger(__name__)
+
+# Queue of upcoming tracks pre-fetched from the scraper
+TRACK_QUEUE: asyncio.Queue[tuple[Track, Path]] = asyncio.Queue()
+
+# Simple cache of recent phrases to avoid repetition
+_recent_phrases: deque[str] = deque(maxlen=10)
+
+# SQLite database for playback history
+HISTORY_DB = Path(os.getenv("HISTORY_DB", "history.db"))
+
+
+def _init_history_db() -> None:
+    conn = sqlite3.connect(HISTORY_DB)
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS history (timestamp TEXT, title TEXT, artist TEXT, announcement TEXT)"
+    )
+    conn.commit()
+    conn.close()
+
+
+_init_history_db()
 
 
 class IcecastStreamer:
@@ -39,6 +65,7 @@ class IcecastStreamer:
         self._was_skipped = False
         # Durations for fades and crossfades
         self.fade_duration = float(os.getenv("FADE_DURATION", "1.0"))
+        self.crossfade_duration = float(os.getenv("CROSSFADE_DURATION", "1.5"))
 
     def _base_cmd(self) -> list[str]:
         url = f"icecast://{self.user}:{self.password}@{self.host}:{self.port}/{self.mount}"
@@ -115,6 +142,58 @@ class IcecastStreamer:
         else:
             logger.error("Failed to stream file %s after retries", file_path)
 
+    def stream_pair(self, first: Path, second: Path) -> None:
+        """Stream two tracks with a crossfade between them."""
+
+        url = f"icecast://{self.user}:{self.password}@{self.host}:{self.port}/{self.mount}"
+        cf = self.crossfade_duration
+        filter_complex = (
+            f"[0:a]loudnorm[a0];[1:a]loudnorm[a1];[a0][a1]acrossfade=d={cf}"
+        )
+        cmd = [
+            "ffmpeg",
+            "-re",
+            "-i",
+            str(first),
+            "-i",
+            str(second),
+            "-filter_complex",
+            filter_complex,
+            "-c:a",
+            "libmp3lame",
+            "-b:a",
+            "128k",
+            "-content_type",
+            "audio/mpeg",
+            "-f",
+            "mp3",
+            url,
+        ]
+
+        for attempt in range(3):
+            try:
+                logger.debug(
+                    "Streaming pair %s + %s (attempt %d)", first, second, attempt + 1
+                )
+                self.current_process = subprocess.Popen(cmd)
+                self.current_process.wait()
+                if self._was_skipped:
+                    logger.info("Streaming of pair skipped")
+                    break
+                if self.current_process.returncode == 0:
+                    break
+                raise subprocess.CalledProcessError(self.current_process.returncode, cmd)
+            except Exception as exc:
+                logger.warning("Pair stream attempt %d failed: %s", attempt + 1, exc)
+                time.sleep(1)
+            finally:
+                if self.current_process:
+                    self.current_process.kill()
+                    self.current_process = None
+                    self._was_skipped = False
+        else:
+            logger.error("Failed to stream pair %s + %s after retries", first, second)
+
     def skip_current(self) -> None:
         """Terminate the current FFmpeg process to skip the track."""
         if self.current_process and self.current_process.poll() is None:
@@ -123,36 +202,48 @@ class IcecastStreamer:
 
 
 class RadioScheduler:
-    """Basic scheduler that alternates songs and announcements."""
+    """Scheduler that plays pairs of tracks with crossfade and announcements."""
 
     def __init__(self, streamer: IcecastStreamer) -> None:
         self.streamer = streamer
-        self.played_since_announcement = 0
 
-    def play_track(self, track: Track) -> None:
-        """Stream ``track`` and trigger announcements periodically."""
+    def play_pair(
+        self, first: tuple[Track, Path], second: tuple[Track, Path]
+    ) -> None:
+        track1, file1 = first
+        track2, file2 = second
 
-        # Update global now playing information
-        now_playing.title = track.title
-        now_playing.artist = track.artist
-        now_playing.suno_url = track.page_url
+        # Log and set now playing for first track
+        now_playing.title = track1.title
+        now_playing.artist = track1.artist
+        now_playing.suno_url = track1.page_url
         now_playing.announcement = ""
+        log_history(track1, None)
+
+        # Thread to update metadata for second track when it starts
+        duration1 = self.streamer._probe_duration(file1)
+        cf = self.streamer.crossfade_duration
+
+        def _switch_metadata() -> None:
+            time.sleep(max(duration1 - cf, 0))
+            now_playing.title = track2.title
+            now_playing.artist = track2.artist
+            now_playing.suno_url = track2.page_url
+            now_playing.announcement = ""
+            log_history(track2, None)
+
+        threading.Thread(target=_switch_metadata, daemon=True).start()
 
         try:
-            file_path = download_track(track.audio_url)
-            self.streamer.stream_file(file_path)
+            self.streamer.stream_pair(file1, file2)
         except Exception as exc:
-            logger.warning("Failed to play %s: %s", track.title, exc)
+            logger.warning("Failed to play pair %s/%s: %s", track1.title, track2.title, exc)
 
-        self.played_since_announcement += 1
-        if self.played_since_announcement >= 2:
-            self.played_since_announcement = 0
-            announce(self.streamer)
+        announce(self.streamer)
 
     def skip_current(self) -> None:
         """Skip the currently playing track."""
         self.streamer.skip_current()
-        self.played_since_announcement = 0
 
 
 TRACK_CACHE = Path(os.getenv("TRACK_CACHE", "track_cache"))
@@ -195,22 +286,118 @@ def download_track(url: str) -> Path:
     raise RuntimeError(f"Failed to download {url}")
 
 
-def frase_ia_emocional() -> str:
-    """Return a random poetic phrase for announcements."""
+def log_history(track: Track | None, announcement: str | None) -> None:
+    """Persist a track play or announcement into the history database."""
 
-    return random.choice(ANNOUNCEMENTS)
+    conn = sqlite3.connect(HISTORY_DB)
+    conn.execute(
+        "INSERT INTO history VALUES (?,?,?,?)",
+        (
+            datetime.utcnow().isoformat(),
+            track.title if track else None,
+            track.artist if track else None,
+            announcement,
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_history(limit: int = 20) -> list[dict[str, str]]:
+    """Return the latest ``limit`` history entries."""
+
+    conn = sqlite3.connect(HISTORY_DB)
+    rows = conn.execute(
+        "SELECT timestamp, title, artist, announcement FROM history ORDER BY timestamp DESC LIMIT ?",
+        (limit,),
+    ).fetchall()
+    conn.close()
+    return [
+        {
+            "timestamp": ts,
+            "title": title or "",
+            "artist": artist or "",
+            "announcement": ann or "",
+        }
+        for ts, title, artist, ann in rows
+    ]
+
+
+def _llm_generate(style: str) -> str:
+    """Generate a phrase using an external LLM if an API key is provided."""
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("No API key")
+
+    prompt = (
+        "Gere uma breve frase poética para uma rádio com o seguinte estilo: "
+        f"{style}."
+    )
+    try:
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 40,
+            },
+            timeout=15,
+        )
+        data = response.json()
+        return data["choices"][0]["message"]["content"].strip()
+    except Exception:
+        raise RuntimeError("LLM request failed")
+
+
+def generate_phrase() -> str:
+    """Return a cached poetic phrase using LLM or fallback list."""
+
+    style = os.getenv("ANNOUNCE_STYLE", "poética")
+
+    for _ in range(3):
+        try:
+            phrase = _llm_generate(style)
+        except Exception:
+            phrase = random.choice(
+                [
+                    "Estamos entrando na estação da imaginação.",
+                    "Essa próxima faixa foi escolhida pelo trem do tempo.",
+                    "A Rádio Trem AI respira com você.",
+                    "Essa é uma criação sonora feita por uma inteligência sem ego.",
+                    "Deixe-se levar por esse som criado no futuro.",
+                    "Mais uma faixa gerada por IA... mas sentida por você.",
+                ]
+            )
+
+        if phrase not in _recent_phrases:
+            _recent_phrases.append(phrase)
+            return phrase
+
+    return phrase
+
+
+def frase_ia_emocional() -> str:
+    """Compatibility wrapper for older code."""
+
+    return generate_phrase()
 
 
 def announce(streamer: IcecastStreamer, message: Optional[str] = None) -> None:
     """Generate a poetic announcement and stream it."""
 
     if message is None:
-        message = frase_ia_emocional()
+        message = generate_phrase()
 
     try:
         speech = tts.synthesize(message)
         now_playing.announcement = message
         streamer.stream_file(speech)
+        log_history(None, message)
     except Exception as exc:
         logger.warning("Failed to announce '%s': %s", message, exc)
 
@@ -233,16 +420,6 @@ class NowPlaying:
 now_playing = NowPlaying()
 
 
-ANNOUNCEMENTS = [
-    "Estamos entrando na estação da imaginação.",
-    "Essa próxima faixa foi escolhida pelo trem do tempo.",
-    "A Rádio Trem AI respira com você.",
-    "Essa é uma criação sonora feita por uma inteligência sem ego.",
-    "Deixe-se levar por esse som criado no futuro.",
-    "Mais uma faixa gerada por IA... mas sentida por você.",
-]
-
-
 def build_scheduler_from_env() -> RadioScheduler:
     """Create a ``RadioScheduler`` using Icecast credentials from the env."""
 
@@ -256,18 +433,34 @@ def build_scheduler_from_env() -> RadioScheduler:
     return RadioScheduler(streamer)
 
 
-def radio_loop(scheduler: RadioScheduler) -> None:
-    """Continuously stream cached trending tracks and announcements."""
+async def _preload_tracks() -> None:
+    """Keep the track queue filled with downloaded files."""
 
+    index = 0
     while True:
+        if TRACK_QUEUE.qsize() >= 4:
+            await asyncio.sleep(1)
+            continue
         playlist = scraper.get_trending_cache()
         if not playlist:
             scraper.update_trending_cache()
-            playlist = scraper.get_trending_cache()
+            await asyncio.sleep(5)
+            continue
+        track = playlist[index % len(playlist)]
+        try:
+            path = download_track(track.audio_url)
+            await TRACK_QUEUE.put((track, path))
+            index += 1
+        except Exception as exc:
+            logger.warning("Preload failed for %s: %s", track.title, exc)
+            await asyncio.sleep(1)
 
-        for track in playlist:
-            try:
-                scheduler.play_track(track)
-            except Exception as exc:
-                logger.warning("Playback error: %s", exc)
-                continue
+
+async def radio_loop_async(scheduler: RadioScheduler) -> None:
+    """Continuously stream tracks from the queue."""
+
+    asyncio.create_task(_preload_tracks())
+    while True:
+        first = await TRACK_QUEUE.get()
+        second = await TRACK_QUEUE.get()
+        await asyncio.to_thread(scheduler.play_pair, first, second)

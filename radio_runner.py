@@ -1,11 +1,13 @@
 """Entrypoint script to start the Rádio Trem AI streaming loop."""
-from backend.stream import build_scheduler_from_env, radio_loop
+import asyncio
+
+from backend.stream import build_scheduler_from_env, radio_loop_async
 
 
 def main() -> None:
     """Build scheduler from environment and start the radio loop."""
     scheduler = build_scheduler_from_env()
-    radio_loop(scheduler)
+    asyncio.run(radio_loop_async(scheduler))
 
 
 if __name__ == "__main__":

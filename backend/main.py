@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from . import scraper, tts
-from .stream import build_scheduler_from_env, now_playing
+from .stream import build_scheduler_from_env, now_playing, get_history
 
 # Allow web players on other origins to call the API
 app = FastAPI(title="Rádio Trem AI")
@@ -56,6 +56,12 @@ class NowPlayingResponse(BaseModel):
 def now_playing_endpoint() -> NowPlayingResponse:
     """Return metadata about the current track and last announcement."""
     return NowPlayingResponse(**now_playing.__dict__)
+
+
+@app.get("/history")
+def history_endpoint(limit: int = 20):
+    """Return recent playback history."""
+    return get_history(limit)
 
 @app.post("/skip")
 def skip_track() -> dict[str, str]:
