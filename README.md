@@ -83,11 +83,13 @@ pip install -r backend/requirements.txt
 python run_all.py
 ```
 
-The API exposes three endpoints:
+The API exposes these endpoints:
 
 - `/trending` – returns the current trending songs from Suno.
 - `/generate_announcement` – POST a JSON body `{ "text": "...", "voice": "...", "emotion": "..." }` and receive a WAV file.
 - `/now_playing` – metadata about the current track and last announcement.
+- `/history` – list of the latest played tracks and announcements.
+- `/skip` – skip the currently playing track.
 
 `voice` and `emotion` are optional. Example values depend on the TTS model in use; with the default Coqui XTTS model, voices such as `random` or specific speaker IDs and emotions like `Neutral`, `Happy`, or `Sad` are available.
 
