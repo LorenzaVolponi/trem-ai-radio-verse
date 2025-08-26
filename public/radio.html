@@ -17,6 +17,13 @@
   <div id="announcement"></div>
   <button id="shuffle">tocar diferente</button>
 
+  <h2>Gerar locução</h2>
+  <div>
+    <input id="ann-text" type="text" placeholder="Digite a frase" style="width:80%" />
+    <button id="ann-generate">Gerar</button>
+  </div>
+  <div id="ann-result" style="margin-top:1rem"></div>
+
   <script>
     const STREAM_URL = (window.ICECAST_STREAM || '');
     const player = document.getElementById('player');
@@ -42,6 +49,24 @@
 
     refresh();
     setInterval(refresh, 5000);
+
+    document.getElementById('ann-generate').addEventListener('click', async () => {
+      const text = document.getElementById('ann-text').value;
+      if (!text) return;
+      try {
+        const resp = await fetch('/generate_announcement', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const container = document.getElementById('ann-result');
+        container.innerHTML = `<audio controls src="${url}"></audio><br/><a href="${url}" download="announcement.wav">Baixar</a>`;
+      } catch (err) {
+        console.error(err);
+      }
+    });
   </script>
 </body>
 </html>
