@@ -1,6 +1,7 @@
 """Streaming utilities using FFmpeg for Icecast output."""
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
 import random
@@ -36,6 +37,8 @@ class IcecastStreamer:
         self.password = password
         self.current_process: Optional[subprocess.Popen] = None
         self._was_skipped = False
+        # Durations for fades and crossfades
+        self.fade_duration = float(os.getenv("FADE_DURATION", "1.0"))
 
     def _base_cmd(self) -> list[str]:
         url = f"icecast://{self.user}:{self.password}@{self.host}:{self.port}/{self.mount}"
@@ -55,11 +58,40 @@ class IcecastStreamer:
             url,
         ]
 
+    def _probe_duration(self, file_path: Path) -> float:
+        """Return duration of ``file_path`` in seconds using ffprobe."""
+
+        try:
+            result = subprocess.run(
+                [
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-show_entries",
+                    "format=duration",
+                    "-of",
+                    "default=noprint_wrappers=1:nokey=1",
+                    str(file_path),
+                ],
+                capture_output=True,
+                text=True,
+            )
+            return float(result.stdout.strip())
+        except Exception:
+            return 0.0
+
     def stream_file(self, file_path: Path) -> None:
-        """Send a local audio file to the Icecast server with retries."""
+        """Send a local audio file to the Icecast server with fades and normalization."""
 
         cmd = self._base_cmd()
         cmd[cmd.index("-i") + 1] = str(file_path)
+
+        duration = self._probe_duration(file_path)
+        fade = self.fade_duration
+        fade_out_start = max(duration - fade, 0)
+        filter_chain = f"loudnorm,afade=t=in:st=0:d={fade},afade=t=out:st={fade_out_start}:d={fade}"
+        cmd.insert(cmd.index("-c:a"), "-af")
+        cmd.insert(cmd.index("-c:a"), filter_chain)
 
         for attempt in range(3):
             try:
@@ -106,15 +138,11 @@ class RadioScheduler:
         now_playing.suno_url = track.page_url
         now_playing.announcement = ""
 
-        file_path: Path | None = None
         try:
             file_path = download_track(track.audio_url)
             self.streamer.stream_file(file_path)
         except Exception as exc:
             logger.warning("Failed to play %s: %s", track.title, exc)
-        finally:
-            if file_path:
-                file_path.unlink(missing_ok=True)
 
         self.played_since_announcement += 1
         if self.played_since_announcement >= 2:
@@ -127,19 +155,39 @@ class RadioScheduler:
         self.played_since_announcement = 0
 
 
-def download_track(url: str) -> Path:
-    """Download ``url`` to a temporary file and return its path with retries."""
+TRACK_CACHE = Path(os.getenv("TRACK_CACHE", "track_cache"))
+TRACK_CACHE.mkdir(exist_ok=True)
+CACHE_TTL = int(os.getenv("TRACK_CACHE_TTL", "86400"))  # one day default
 
-    tmp = Path("tmp")
-    tmp.mkdir(exist_ok=True)
-    filename = tmp / Path(url).name
+
+def cleanup_cache() -> None:
+    """Remove cached files older than ``CACHE_TTL`` seconds."""
+
+    now = time.time()
+    for file in TRACK_CACHE.glob("*"):
+        try:
+            if file.is_file() and now - file.stat().st_mtime > CACHE_TTL:
+                file.unlink()
+        except OSError:
+            pass
+
+
+def download_track(url: str) -> Path:
+    """Stream-download ``url`` into the cache and return its path."""
+
+    cleanup_cache()
+    filename = TRACK_CACHE / (hashlib.sha1(url.encode("utf-8")).hexdigest() + Path(url).suffix)
+    if filename.exists():
+        return filename
 
     for attempt in range(3):
         try:
-            response = requests.get(url, timeout=30)
-            response.raise_for_status()
-            with open(filename, "wb") as fh:
-                fh.write(response.content)
+            with requests.get(url, timeout=30, stream=True) as response:
+                response.raise_for_status()
+                with open(filename, "wb") as fh:
+                    for chunk in response.iter_content(chunk_size=65536):
+                        if chunk:
+                            fh.write(chunk)
             return filename
         except Exception as exc:
             logger.warning("Download attempt %d failed: %s", attempt + 1, exc)
@@ -165,8 +213,6 @@ def announce(streamer: IcecastStreamer, message: Optional[str] = None) -> None:
         streamer.stream_file(speech)
     except Exception as exc:
         logger.warning("Failed to announce '%s': %s", message, exc)
-    finally:
-        speech.unlink(missing_ok=True)
 
 
 # ---------------------------------------------------------------------------

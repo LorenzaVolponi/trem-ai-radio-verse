@@ -8,9 +8,11 @@ request.
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 from datetime import datetime
+from pathlib import Path
 from typing import List
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -34,8 +36,34 @@ class Track(BaseModel):
 # Fetching and caching
 # ----------------------------------------------------------------------------
 
+CACHE_FILE = Path(__file__).with_name("trending_cache.json")
 TRENDING_CACHE: List[Track] = []
 LAST_UPDATED: datetime | None = None
+
+
+def save_cache() -> None:
+    """Persist the current cache to ``CACHE_FILE``."""
+
+    data = {
+        "last_updated": LAST_UPDATED.isoformat() if LAST_UPDATED else None,
+        "tracks": [t.model_dump() for t in TRENDING_CACHE],
+    }
+    CACHE_FILE.write_text(json.dumps(data), encoding="utf-8")
+
+
+def load_cache() -> None:
+    """Load cached tracks from ``CACHE_FILE`` if present."""
+
+    global TRENDING_CACHE, LAST_UPDATED
+    if not CACHE_FILE.exists():
+        return
+    try:
+        data = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+        TRENDING_CACHE = [Track(**t) for t in data.get("tracks", [])]
+        ts = data.get("last_updated")
+        LAST_UPDATED = datetime.fromisoformat(ts) if ts else None
+    except Exception as exc:  # pragma: no cover - corrupt cache
+        logger.warning("Failed to load trending cache: %s", exc)
 
 
 def fetch_trending_tracks(limit: int = 20) -> List[Track]:
@@ -93,6 +121,7 @@ def update_trending_cache() -> None:
     try:
         TRENDING_CACHE = fetch_trending_tracks()
         LAST_UPDATED = datetime.utcnow()
+        save_cache()
         logger.debug("Trending cache updated with %d tracks", len(TRENDING_CACHE))
     except Exception as exc:  # pragma: no cover - network failures are logged
         logger.warning("Failed to update trending cache: %s", exc)
@@ -109,7 +138,8 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(update_trending_cache, "interval", minutes=10)
 scheduler.start()
 
-# Populate cache at import time so callers immediately have data.
+# Load cache from disk first, then update from the network.
+load_cache()
 update_trending_cache()
 
 

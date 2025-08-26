@@ -4,13 +4,21 @@ from __future__ import annotations
 from typing import List
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from . import scraper, tts
 from .stream import build_scheduler_from_env, now_playing
 
+# Allow web players on other origins to call the API
 app = FastAPI(title="Rádio Trem AI")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/trending", response_model=List[scraper.Track])
@@ -22,12 +30,18 @@ def get_trending(limit: int = 20) -> List[scraper.Track]:
 
 class AnnouncementRequest(BaseModel):
     text: str
+    voice: str | None = None
+    emotion: str | None = None
 
 
 @app.post("/generate_announcement")
 def generate_announcement(payload: AnnouncementRequest) -> FileResponse:
     """Generate an announcement audio file for the provided ``text``."""
-    file_path = tts.synthesize(payload.text)
+    file_path = tts.synthesize(
+        payload.text,
+        voice=payload.voice or "random",
+        emotion=payload.emotion or "Neutral",
+    )
     return FileResponse(file_path, media_type="audio/wav", filename=file_path.name)
 
 
