@@ -13,7 +13,7 @@ const RealTimeStats: React.FC<RealTimeStatsProps> = ({ currentListeners }) => {
       <CardHeader>
         <CardTitle className="text-sm flex items-center space-x-2">
           <TrendingUp className="w-4 h-4 text-green-400" />
-          <span>Métricas Oscar - Tempo Real</span>
+          <span>Métricas em tempo real</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -35,13 +35,13 @@ const RealTimeStats: React.FC<RealTimeStatsProps> = ({ currentListeners }) => {
         </div>
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-400">IA Performance</span>
-          <span className="text-sm font-medium text-yellow-400">99.7% Oscar</span>
+          <span className="text-sm font-medium text-yellow-400">99.7%</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-400">Ranking Mundial</span>
+          <span className="text-sm text-gray-400">Alcance</span>
           <span className="text-sm font-medium text-yellow-400 flex items-center">
             <Crown className="w-3 h-3 mr-1" />
-            #1
+            Global
           </span>
         </div>
       </CardContent>
