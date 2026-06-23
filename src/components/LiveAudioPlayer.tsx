@@ -16,6 +16,8 @@ import {
   Heart,
   Zap
 } from 'lucide-react';
+import RealtimeStatusAlert, { RealtimeState } from './RealtimeStatusAlert';
+import { useToast } from '@/components/ui/use-toast';
 
 interface LiveAudioPlayerProps {
   currentTrack: {
@@ -38,9 +40,43 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
   const [volume, setVolume] = useState(75);
   const [isMuted, setIsMuted] = useState(false);
   const [visualizerBars, setVisualizerBars] = useState<number[]>(Array(20).fill(0));
+  const [streamState, setStreamState] = useState<RealtimeState | 'online'>('loading');
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (isPlaying) {
+    const finishInitialSync = window.setTimeout(() => {
+      setStreamState(navigator.onLine ? 'online' : 'offline');
+    }, 800);
+
+    const handleOffline = () => {
+      setStreamState('offline');
+      toast({
+        title: 'Player offline',
+        description: 'A transmissão será retomada quando a conexão voltar.',
+        variant: 'destructive',
+      });
+    };
+
+    const handleOnline = () => {
+      setStreamState('online');
+      toast({
+        title: 'Conexão restaurada',
+        description: 'O player ao vivo voltou a receber o stream.',
+      });
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.clearTimeout(finishInitialSync);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [toast]);
+
+  useEffect(() => {
+    if (isPlaying && streamState === 'online') {
       const interval = setInterval(() => {
         setVisualizerBars(prev => 
           prev.map(() => Math.random() * 100)
@@ -48,7 +84,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [isPlaying]);
+  }, [isPlaying, streamState]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -57,6 +93,43 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
   };
 
   const progressPercentage = (currentTrack.elapsed / currentTrack.duration) * 100;
+
+  const handlePlayPause = () => {
+    if (streamState === 'offline' || streamState === 'error') {
+      toast({
+        title: 'Stream indisponível',
+        description: 'Use o botão Tentar novamente para reconectar a transmissão.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    onPlayPause();
+  };
+
+  const handleRetryStream = () => {
+    setStreamState('loading');
+    window.setTimeout(() => {
+      if (!navigator.onLine) {
+        setStreamState('offline');
+        toast({
+          title: 'Sem internet',
+          description: 'Não foi possível reconectar porque o navegador está offline.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setStreamState('online');
+      toast({
+        title: 'Stream reconectado',
+        description: 'A transmissão ao vivo está disponível novamente.',
+      });
+    }, 900);
+  };
+
+  const hasTrack = Boolean(currentTrack.title && currentTrack.artist);
+  const visibleState: RealtimeState | null = !hasTrack ? 'empty' : streamState === 'online' ? null : streamState;
 
   return (
     <Card className="backdrop-blur-md bg-gradient-to-br from-purple-500/20 via-pink-500/10 to-cyan-500/20 border-white/20 shadow-2xl">
@@ -86,6 +159,17 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
             </Badge>
           </div>
           
+          {visibleState && (
+            <RealtimeStatusAlert
+              state={visibleState}
+              title={visibleState === 'error' ? 'Erro no stream ao vivo' : undefined}
+              description={visibleState === 'error' ? 'A fonte de áudio não respondeu. Tente reconectar o player.' : undefined}
+              actionLabel={visibleState === 'error' || visibleState === 'offline' ? 'Tentar novamente' : undefined}
+              onAction={visibleState === 'error' || visibleState === 'offline' ? handleRetryStream : undefined}
+              className="mb-4 text-left"
+            />
+          )}
+
           <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
             🎵 {currentTrack.title} 🎵
           </h2>
@@ -98,8 +182,8 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
                 key={index}
                 className="bg-gradient-to-t from-purple-500 to-cyan-400 rounded-full transition-all duration-100 w-2"
                 style={{ 
-                  height: isPlaying ? `${Math.max(height * 0.6, 10)}%` : '10%',
-                  opacity: isPlaying ? 1 : 0.3
+                  height: isPlaying && streamState === 'online' ? `${Math.max(height * 0.6, 10)}%` : '10%',
+                  opacity: isPlaying && streamState === 'online' ? 1 : 0.3
                 }}
               />
             ))}
@@ -120,8 +204,9 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
           {/* Control Buttons */}
           <div className="flex items-center justify-center space-x-4 mb-4">
             <Button
-              onClick={onPlayPause}
+              onClick={handlePlayPause}
               size="lg"
+              disabled={streamState === 'loading' || streamState === 'offline' || streamState === 'error' || !hasTrack}
               className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transition-all duration-300"
             >
               {isPlaying ? (
@@ -169,7 +254,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
             </div>
             <div className="flex items-center space-x-1">
               <Brain className="w-4 h-4 text-purple-400" />
-              <span>IA Oscar Performance: 99.7%</span>
+              <span>IA Oscar Performance: 99.7% · Nível {Math.round(audioLevel)}%</span>
             </div>
           </div>
         </div>
