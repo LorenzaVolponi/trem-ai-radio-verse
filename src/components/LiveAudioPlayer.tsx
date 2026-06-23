@@ -36,9 +36,43 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
   const [volume, setVolume] = useState(75);
   const [isMuted, setIsMuted] = useState(false);
   const [visualizerBars, setVisualizerBars] = useState<number[]>(Array(20).fill(0));
+  const [streamState, setStreamState] = useState<RealtimeState | 'online'>('loading');
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (isPlaying) {
+    const finishInitialSync = window.setTimeout(() => {
+      setStreamState(navigator.onLine ? 'online' : 'offline');
+    }, 800);
+
+    const handleOffline = () => {
+      setStreamState('offline');
+      toast({
+        title: 'Player offline',
+        description: 'A transmissão será retomada quando a conexão voltar.',
+        variant: 'destructive',
+      });
+    };
+
+    const handleOnline = () => {
+      setStreamState('online');
+      toast({
+        title: 'Conexão restaurada',
+        description: 'O player ao vivo voltou a receber o stream.',
+      });
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.clearTimeout(finishInitialSync);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [toast]);
+
+  useEffect(() => {
+    if (isPlaying && streamState === 'online') {
       const interval = setInterval(() => {
         setVisualizerBars(prev => 
           prev.map(() => Math.random() * 100)
@@ -46,7 +80,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [isPlaying]);
+  }, [isPlaying, streamState]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -55,6 +89,43 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
   };
 
   const progressPercentage = (currentTrack.elapsed / currentTrack.duration) * 100;
+
+  const handlePlayPause = () => {
+    if (streamState === 'offline' || streamState === 'error') {
+      toast({
+        title: 'Stream indisponível',
+        description: 'Use o botão Tentar novamente para reconectar a transmissão.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    onPlayPause();
+  };
+
+  const handleRetryStream = () => {
+    setStreamState('loading');
+    window.setTimeout(() => {
+      if (!navigator.onLine) {
+        setStreamState('offline');
+        toast({
+          title: 'Sem internet',
+          description: 'Não foi possível reconectar porque o navegador está offline.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setStreamState('online');
+      toast({
+        title: 'Stream reconectado',
+        description: 'A transmissão ao vivo está disponível novamente.',
+      });
+    }, 900);
+  };
+
+  const hasTrack = Boolean(currentTrack.title && currentTrack.artist);
+  const visibleState: RealtimeState | null = !hasTrack ? 'empty' : streamState === 'online' ? null : streamState;
 
   return (
     <GradientPanel variant="hero" className="animate-brand-fade-up p-6">
@@ -91,8 +162,8 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
                 key={index}
                 className="bg-gradient-to-t from-radio-purple to-radio-cyan rounded-full transition-all duration-100 w-2"
                 style={{ 
-                  height: isPlaying ? `${Math.max(height * 0.6, 10)}%` : '10%',
-                  opacity: isPlaying ? 1 : 0.3
+                  height: isPlaying && streamState === 'online' ? `${Math.max(height * 0.6, 10)}%` : '10%',
+                  opacity: isPlaying && streamState === 'online' ? 1 : 0.3
                 }}
               />
             ))}
@@ -113,7 +184,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
           {/* Control Buttons */}
           <div className="flex items-center justify-center space-x-4 mb-4">
             <Button
-              onClick={onPlayPause}
+              onClick={handlePlayPause}
               size="lg"
               className="w-16 h-16 rounded-full bg-brand-cta shadow-brand-glow transition-brand hover:scale-105"
             >

@@ -71,3 +71,43 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Ops guardrails, GitHub PR and Vercel deploy
+
+This repository includes an operational automation script for safer releases:
+
+```sh
+npm run ops:guardrails
+```
+
+What it does:
+
+- Scans for high-signal leaked secrets and hardcoded credentials.
+- Validates the main project taxonomy and required scripts.
+- Installs dependencies when `node_modules` is missing.
+- Runs lint, production build and a high-severity npm audit gate.
+- Optionally commits pending changes with a default release message.
+- Optionally pushes the branch, opens a GitHub PR and deploys to Vercel.
+
+Useful commands:
+
+```sh
+# Local validation only
+npm run ops:guardrails
+
+# Preview commands without executing mutating steps
+npm run ops:guardrails -- --dry-run
+
+# Commit current changes after successful gates
+npm run ops:guardrails -- --commit
+
+# Full release flow: commit, push, GitHub PR and production Vercel deploy
+npm run release:auto
+```
+
+Requirements for the full release flow:
+
+- `git` configured with access to the remote repository.
+- GitHub CLI (`gh`) authenticated with `gh auth login`.
+- Vercel CLI (`vercel`) authenticated with `vercel login`.
+- Optional environment variables: `RELEASE_COMMIT_MESSAGE`, `PR_TITLE`, `PR_BODY`.
