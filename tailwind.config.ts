@@ -71,11 +71,34 @@ export default {
 				'radio-green': '#10B981',
 				'radio-dark': '#0F0F0F',
 				'radio-darker': '#0A0A0A',
+				brand: {
+					ink: '#F8FAFC',
+					muted: '#94A3B8',
+					surface: '#101827',
+					'elevated': '#172033',
+					glass: 'rgba(255, 255, 255, 0.06)',
+					line: 'rgba(255, 255, 255, 0.12)',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'brand-lg': '1rem',
+				'brand-xl': '1.5rem',
+				'brand-full': '999px',
+			},
+			boxShadow: {
+				'brand-soft': '0 18px 50px rgba(2, 6, 23, 0.28)',
+				'brand-panel': '0 24px 80px rgba(2, 6, 23, 0.42)',
+				'brand-glow': '0 24px 90px rgba(139, 92, 246, 0.22)',
+				'brand-live': '0 0 24px rgba(239, 68, 68, 0.24)',
+			},
+			backdropBlur: {
+				brand: '18px',
+			},
+			transitionTimingFunction: {
+				brand: 'cubic-bezier(0.22, 1, 0.36, 1)',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -110,6 +133,10 @@ export default {
 					'0%, 100%': { transform: 'translateY(0px)' },
 					'50%': { transform: 'translateY(-10px)' }
 				},
+				'brand-fade-up': {
+					'0%': { opacity: '0', transform: 'translateY(12px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
 				'gradient-x': {
 					'0%, 100%': {
 						'background-size': '200% 200%',
@@ -127,11 +154,18 @@ export default {
 				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
 				'wave': 'wave 1s ease-in-out infinite',
 				'float': 'float 3s ease-in-out infinite',
-				'gradient-x': 'gradient-x 3s ease infinite'
+				'gradient-x': 'gradient-x 3s ease infinite',
+				'brand-fade-up': 'brand-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both'
+			},
+			transitionProperty: {
+				brand: 'color, background-color, border-color, box-shadow, opacity, transform',
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+				'brand-hero': 'linear-gradient(135deg, rgba(139, 92, 246, 0.20), rgba(6, 182, 212, 0.12) 48%, rgba(15, 23, 42, 0.72))',
+				'brand-glass': 'linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035))',
+				'brand-cta': 'linear-gradient(135deg, #8B5CF6, #06B6D4)',
 			}
 		}
 	},

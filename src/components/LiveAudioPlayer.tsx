@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
   Play, 
@@ -12,12 +10,10 @@ import {
   Radio,
   Wifi,
   Brain,
-  Crown,
   Heart,
   Zap
 } from 'lucide-react';
-import RealtimeStatusAlert, { RealtimeState } from './RealtimeStatusAlert';
-import { useToast } from '@/components/ui/use-toast';
+import { BrandBadge, GradientPanel, SectionHeading } from '@/components/brand';
 
 interface LiveAudioPlayerProps {
   currentTrack: {
@@ -132,55 +128,39 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
   const visibleState: RealtimeState | null = !hasTrack ? 'empty' : streamState === 'online' ? null : streamState;
 
   return (
-    <Card className="backdrop-blur-md bg-gradient-to-br from-purple-500/20 via-pink-500/10 to-cyan-500/20 border-white/20 shadow-2xl">
-      <CardContent className="p-6">
+    <GradientPanel variant="hero" className="animate-brand-fade-up p-6">
         <div className="text-center mb-6">
           <div className="relative inline-block">
-            <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full flex items-center justify-center animate-pulse shadow-2xl shadow-purple-500/50 mb-4 mx-auto">
+            <div className="w-24 h-24 bg-brand-cta rounded-full flex items-center justify-center shadow-brand-glow mb-4 mx-auto">
               <Radio className="w-12 h-12 text-white" />
             </div>
-            <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full border-2 border-white flex items-center justify-center animate-bounce">
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full border-2 border-white flex items-center justify-center">
               <Wifi className="w-3 h-3 text-white" />
             </div>
           </div>
           
           <div className="flex items-center justify-center space-x-2 mb-2">
-            <Badge variant="outline" className="border-red-500/50 text-red-400 animate-pulse">
-              <Wifi className="w-3 h-3 mr-1" />
+            <BrandBadge tone="live" icon={<Wifi className="w-3 h-3" />}>
               AO VIVO 24/7
-            </Badge>
-            <Badge variant="outline" className="border-purple-500/50 text-purple-400">
-              <Brain className="w-3 h-3 mr-1" />
-              100% IA Oscar
-            </Badge>
-            <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
-              <Crown className="w-3 h-3 mr-1" />
-              TOP 1 MUNDIAL
-            </Badge>
+            </BrandBadge>
+            <BrandBadge tone="primary" icon={<Brain className="w-3 h-3" />}>
+              Curadoria IA
+            </BrandBadge>
           </div>
           
-          {visibleState && (
-            <RealtimeStatusAlert
-              state={visibleState}
-              title={visibleState === 'error' ? 'Erro no stream ao vivo' : undefined}
-              description={visibleState === 'error' ? 'A fonte de áudio não respondeu. Tente reconectar o player.' : undefined}
-              actionLabel={visibleState === 'error' || visibleState === 'offline' ? 'Tentar novamente' : undefined}
-              onAction={visibleState === 'error' || visibleState === 'offline' ? handleRetryStream : undefined}
-              className="mb-4 text-left"
-            />
-          )}
-
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-            🎵 {currentTrack.title} 🎵
-          </h2>
-          <p className="text-xl text-purple-300 mb-4">{currentTrack.artist}</p>
+          <SectionHeading
+            className="mb-4 items-center text-center md:block"
+            eyebrow="Rádio premium autogerenciável"
+            title={<span className="bg-gradient-to-r from-purple-300 to-cyan-200 bg-clip-text text-transparent">{currentTrack.title}</span>}
+            description={<span className="text-purple-200">{currentTrack.artist}</span>}
+          />
           
           {/* Audio Visualizer */}
           <div className="flex items-end justify-center space-x-1 h-16 mb-4">
             {visualizerBars.map((height, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-t from-purple-500 to-cyan-400 rounded-full transition-all duration-100 w-2"
+                className="bg-gradient-to-t from-radio-purple to-radio-cyan rounded-full transition-all duration-100 w-2"
                 style={{ 
                   height: isPlaying && streamState === 'online' ? `${Math.max(height * 0.6, 10)}%` : '10%',
                   opacity: isPlaying && streamState === 'online' ? 1 : 0.3
@@ -206,8 +186,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
             <Button
               onClick={handlePlayPause}
               size="lg"
-              disabled={streamState === 'loading' || streamState === 'offline' || streamState === 'error' || !hasTrack}
-              className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transition-all duration-300"
+              className="w-16 h-16 rounded-full bg-brand-cta shadow-brand-glow transition-brand hover:scale-105"
             >
               {isPlaying ? (
                 <Pause className="w-8 h-8 text-white" />
@@ -254,12 +233,11 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
             </div>
             <div className="flex items-center space-x-1">
               <Brain className="w-4 h-4 text-purple-400" />
-              <span>IA Oscar Performance: 99.7% · Nível {Math.round(audioLevel)}%</span>
+              <span>IA Performance: 99.7%</span>
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+    </GradientPanel>
   );
 };
 
