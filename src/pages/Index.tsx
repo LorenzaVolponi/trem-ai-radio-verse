@@ -3,12 +3,16 @@ import React, { useState, useEffect } from 'react';
 import LiveAudioPlayer from '@/components/LiveAudioPlayer';
 import RadioHeader from '@/components/RadioHeader';
 import AutoStartNotification from '@/components/AutoStartNotification';
-import StreamingInfoCard from '@/components/StreamingInfoCard';
 import PlaylistQueue from '@/components/PlaylistQueue';
 import RealTimeStats from '@/components/RealTimeStats';
-import AdminAccessCard from '@/components/AdminAccessCard';
 import RadioFooter from '@/components/RadioFooter';
-import SEOHead from '@/components/SEOHead';
+import HeroSection from '@/components/landing/HeroSection';
+import FeatureGrid from '@/components/landing/FeatureGrid';
+import PricingSection from '@/components/landing/PricingSection';
+import TestimonialsSection from '@/components/landing/TestimonialsSection';
+import FAQSection from '@/components/landing/FAQSection';
+import FinalCTASection from '@/components/landing/FinalCTASection';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [currentListeners, setCurrentListeners] = useState(2847);
@@ -60,52 +64,49 @@ const Index = () => {
       <RadioHeader currentListeners={currentListeners} />
       <AutoStartNotification />
 
-      {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Enhanced Player Area */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Live Audio Player */}
-            <LiveAudioPlayer 
-              currentTrack={currentTrack}
-              isPlaying={isPlaying}
-              onPlayPause={() => setIsPlaying(!isPlaying)}
-              audioLevel={audioLevel}
-            />
+      <main className="container relative z-10 mx-auto px-4 sm:px-6">
+        <HeroSection />
 
-            <StreamingInfoCard />
-
-            <section className="glass-effect rounded-2xl border border-white/10 p-6 space-y-4">
-              <p className="text-sm uppercase tracking-[0.3em] text-radio-cyan font-semibold">Rádio online com IA</p>
-              <h1 className="text-3xl md:text-4xl font-bold text-white">Rádio Trem AI: música gerada por inteligência artificial para marcas, ouvintes e programação 24/7</h1>
-              <p className="text-gray-300 leading-relaxed">
-                A Rádio Trem AI combina rádio online ao vivo, inteligência artificial generativa, locução sintética e curadoria musical automatizada para entregar uma experiência de áudio moderna, escalável e sempre disponível.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-300">
-                <div className="rounded-xl bg-white/5 p-4 border border-white/10">
-                  <strong className="block text-white mb-2">Transmissão inteligente</strong>
-                  Programação de rádio 24 horas com trilhas, vinhetas e conteúdos criados por IA.
-                </div>
-                <div className="rounded-xl bg-white/5 p-4 border border-white/10">
-                  <strong className="block text-white mb-2">Conteúdo comercial</strong>
-                  Soluções de áudio branding, spots publicitários e campanhas para rádio digital.
-                </div>
-                <div className="rounded-xl bg-white/5 p-4 border border-white/10">
-                  <strong className="block text-white mb-2">SEO para áudio</strong>
-                  Presença otimizada para buscas por rádio com IA, música artificial e streaming online.
-                </div>
-              </div>
-            </section>
+        <section id="player" className="scroll-mt-20 py-10 sm:py-14">
+          <div className="mx-auto mb-8 max-w-3xl text-center">
+            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Player ao vivo</span>
+            <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">Ouça a rádio IA em ação.</h2>
+            <p className="mt-4 text-slate-300">
+              O player é o centro da experiência: demonstra qualidade de transmissão, voz sintética,
+              programação contínua e métricas que sustentam decisões comerciais.
+            </p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button className="bg-cyan-500 text-slate-950 hover:bg-cyan-400" asChild>
+                <a href="#player">Ouvir agora</a>
+              </Button>
+              <Button variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white" asChild>
+                <a href="#planos">Criar minha rádio IA</a>
+              </Button>
+            </div>
           </div>
 
-          {/* Enhanced Sidebar */}
-          <div className="space-y-6">
-            <PlaylistQueue />
-            <RealTimeStats currentListeners={currentListeners} />
-            <AdminAccessCard />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+            <div className="space-y-6">
+              <LiveAudioPlayer 
+                currentTrack={currentTrack}
+                isPlaying={isPlaying}
+                onPlayPause={() => setIsPlaying(!isPlaying)}
+                audioLevel={audioLevel}
+              />
+            </div>
+
+            <aside className="space-y-6">
+              <RealTimeStats currentListeners={currentListeners} />
+              <PlaylistQueue />
+            </aside>
           </div>
-        </div>
+        </section>
+
+        <FeatureGrid />
+        <PricingSection />
+        <TestimonialsSection />
+        <FAQSection />
+        <FinalCTASection />
       </main>
 
       <RadioFooter />
