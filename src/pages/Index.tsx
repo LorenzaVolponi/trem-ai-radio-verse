@@ -29,7 +29,7 @@ const Index = () => {
     musicGeneration: 'generating'
   });
   
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
 
   // Real-time listeners and system monitoring
   useEffect(() => {
@@ -52,13 +52,23 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Show admin dashboard if authenticated
-  if (isAuthenticated) {
+  const isAdminRoute = window.location.search.includes('admin');
+
+  if (loading && isAdminRoute) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-radio-darker via-gray-900 to-radio-dark flex items-center justify-center text-white">
+        Carregando sessão administrativa...
+      </div>
+    );
+  }
+
+  // Show admin dashboard only for authenticated administrators
+  if (isAuthenticated && isAdmin) {
     return <RadioDashboard />;
   }
 
   // Show admin login if admin parameter is present
-  if (window.location.search.includes('admin')) {
+  if (isAdminRoute) {
     return <AdminLogin />;
   }
 

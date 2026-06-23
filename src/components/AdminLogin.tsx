@@ -9,17 +9,19 @@ import { Lock, Radio, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const AdminLogin = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, loading } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(username, password)) {
-      setError('');
-    } else {
-      setError('Credenciais inválidas. Use: admin007 / admin007');
+    setError('');
+
+    const authenticated = await login(email, password);
+
+    if (!authenticated) {
+      setError('Não foi possível acessar o painel administrativo. Verifique seus dados e permissões.');
     }
   };
 
@@ -39,15 +41,15 @@ const AdminLogin = () => {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-gray-300">Usuário</Label>
+              <Label htmlFor="email" className="text-gray-300">E-mail</Label>
               <div className="relative">
                 <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin007"
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@radio.com"
                   className="pl-10 glass-effect border-white/20 bg-white/5 text-white"
                   required
                 />
@@ -79,14 +81,14 @@ const AdminLogin = () => {
             <Button 
               type="submit" 
               className="w-full bg-radio-purple hover:bg-radio-purple/80 text-white"
+              disabled={loading}
             >
-              Entrar no Sistema
+              {loading ? 'Entrando...' : 'Entrar no Sistema'}
             </Button>
           </form>
           
           <div className="mt-6 text-center text-sm text-gray-400">
             <p>Sistema Autogerenciável de Rádio IA</p>
-            <p className="text-xs mt-1">Credenciais padrão: admin007 / admin007</p>
           </div>
         </CardContent>
       </Card>
