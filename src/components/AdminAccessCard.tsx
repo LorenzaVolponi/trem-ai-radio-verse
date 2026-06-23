@@ -21,10 +21,8 @@ const AdminAccessCard: React.FC = () => {
           <Settings className="w-4 h-4 mr-2" />
           Admin Dashboard
         </Button>
-        <p className="text-xs text-gray-500 mt-2">
-          Login: admin007 / Senha: admin007
-        </p>
-    </GradientPanel>
+      </CardContent>
+    </Card>
   );
 };
 

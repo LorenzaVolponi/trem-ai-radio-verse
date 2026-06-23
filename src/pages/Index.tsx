@@ -26,6 +26,8 @@ const Index = () => {
   });
   const [isDemoMetrics, setIsDemoMetrics] = useState(demoMode);
   
+  const { isAuthenticated, isAdmin, loading } = useAuth();
+
   // Real-time listeners and system monitoring
   useEffect(() => {
     let active = true;
@@ -43,19 +45,25 @@ const Index = () => {
         musicGeneration: metrics.musicGeneration
       }));
 
-      setCurrentTrack(prev => ({
-        ...prev,
-        elapsed: prev.elapsed >= prev.duration ? 0 : prev.elapsed + 1
-      }));
-    };
+  const isAdminRoute = window.location.search.includes('admin');
 
-    updateMetrics();
-    const interval = setInterval(updateMetrics, 1000);
-    return () => {
-      active = false;
-      clearInterval(interval);
-    };
-  }, []);
+  if (loading && isAdminRoute) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-radio-darker via-gray-900 to-radio-dark flex items-center justify-center text-white">
+        Carregando sessão administrativa...
+      </div>
+    );
+  }
+
+  // Show admin dashboard only for authenticated administrators
+  if (isAuthenticated && isAdmin) {
+    return <RadioDashboard />;
+  }
+
+  // Show admin login if admin parameter is present
+  if (isAdminRoute) {
+    return <AdminLogin />;
+  }
 
   return (
     <>

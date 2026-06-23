@@ -3,6 +3,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -32,8 +33,7 @@ import AdvancedAnalytics from './AdvancedAnalytics';
 import { demoMode, fetchTransmissionMetrics } from '@/services/metrics';
 
 const RadioDashboard = () => {
-  const { logout, user } = useAuth();
-  const { state: adminState, updateAndPersist, publish, status: persistStatus, error: persistError, lastSavedAt } = useRadioAdminState();
+  const { logout, userLabel, isAuthenticated, isAdmin, loading } = useAuth();
   const [systemStatus, setSystemStatus] = useState({
     streaming: true,
     aiEngine: true,
@@ -92,15 +92,28 @@ const RadioDashboard = () => {
   }, []);
 
   const handleLogout = () => {
-    logout();
+    void logout();
   };
 
-  const hasMetrics = systemStatus.totalListeners > 0;
-  const visibleMetricsState: RealtimeState | null = !hasMetrics
-    ? 'empty'
-    : metricsState === 'ready'
-      ? null
-      : metricsState;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-radio-darker via-gray-900 to-radio-dark flex items-center justify-center text-white">
+        Validando permissões administrativas...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-radio-darker via-gray-900 to-radio-dark flex items-center justify-center px-4">
+        <Alert className="max-w-md border-red-500/50 bg-red-500/10">
+          <AlertDescription className="text-red-400">
+            Acesso restrito a administradores autenticados. Faça login com uma conta autorizada.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-radio-darker via-gray-900 to-radio-dark text-white">
@@ -150,7 +163,7 @@ const RadioDashboard = () => {
                 <Badge variant="outline" className="border-radio-green/50 text-radio-green">
                   Admin Master
                 </Badge>
-                <span className="text-sm text-gray-300">Olá, {user}</span>
+                <span className="text-sm text-gray-300">Olá, {userLabel}</span>
                 <Button 
                   variant="outline" 
                   size="sm" 
