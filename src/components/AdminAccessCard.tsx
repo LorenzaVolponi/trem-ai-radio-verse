@@ -3,8 +3,11 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AdminAccessCard: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <Card className="backdrop-blur-md bg-red-500/10 border-red-500/20">
       <CardContent className="p-4 text-center">
@@ -14,7 +17,7 @@ const AdminAccessCard: React.FC = () => {
           Sistema de controle total Oscar de IA
         </p>
         <Button 
-          onClick={() => window.location.href = '/?admin'} 
+          onClick={() => navigate('/admin/login')}
           className="w-full bg-red-500 hover:bg-red-600"
         >
           <Settings className="w-4 h-4 mr-2" />

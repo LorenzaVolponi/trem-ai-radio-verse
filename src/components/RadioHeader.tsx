@@ -88,7 +88,7 @@ const RadioHeader: React.FC<RadioHeaderProps> = ({ currentListeners }) => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => window.location.href = '/?admin'}
+                onClick={() => navigate('/admin/login')}
                 className="backdrop-blur-md bg-red-500/20 border-red-500/50 hover:bg-red-500/30 text-red-400"
               >
                 <Settings className="w-4 h-4 mr-2" />

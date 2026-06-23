@@ -1,9 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import LiveAudioPlayer from '@/components/LiveAudioPlayer';
-import AdminLogin from '@/components/AdminLogin';
-import RadioDashboard from '@/components/RadioDashboard';
 import RadioHeader from '@/components/RadioHeader';
 import AutoStartNotification from '@/components/AutoStartNotification';
 import StreamingInfoCard from '@/components/StreamingInfoCard';
@@ -29,8 +26,6 @@ const Index = () => {
     musicGeneration: 'generating'
   });
   
-  const { isAuthenticated } = useAuth();
-
   // Real-time listeners and system monitoring
   useEffect(() => {
     const interval = setInterval(() => {
@@ -51,16 +46,6 @@ const Index = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  // Show admin dashboard if authenticated
-  if (isAuthenticated) {
-    return <RadioDashboard />;
-  }
-
-  // Show admin login if admin parameter is present
-  if (window.location.search.includes('admin')) {
-    return <AdminLogin />;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
