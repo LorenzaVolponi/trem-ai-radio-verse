@@ -1,19 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import LiveAudioPlayer from '@/components/LiveAudioPlayer';
-import AdminLogin from '@/components/AdminLogin';
-import RadioDashboard from '@/components/RadioDashboard';
 import RadioHeader from '@/components/RadioHeader';
 import AutoStartNotification from '@/components/AutoStartNotification';
-import StreamingInfoCard from '@/components/StreamingInfoCard';
 import PlaylistQueue from '@/components/PlaylistQueue';
 import RealTimeStats from '@/components/RealTimeStats';
-import AdminAccessCard from '@/components/AdminAccessCard';
 import RadioFooter from '@/components/RadioFooter';
+import { demoMode, fetchTransmissionMetrics } from '@/services/metrics';
 
 const Index = () => {
-  const [currentListeners, setCurrentListeners] = useState(2847);
+  const [currentListeners, setCurrentListeners] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentTrack, setCurrentTrack] = useState({
     title: "Voz do Amanhã Premium",
@@ -26,31 +22,28 @@ const Index = () => {
     aiEngine: 'online',
     streaming: 'optimal',
     voiceCloning: 'active',
-    musicGeneration: 'generating'
+    musicGeneration: 'standby'
   });
+  const [isDemoMetrics, setIsDemoMetrics] = useState(demoMode);
   
   const { isAuthenticated, isAdmin, loading } = useAuth();
 
   // Real-time listeners and system monitoring
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentListeners(prev => prev + Math.floor(Math.random() * 20) - 10);
-      setAudioLevel(Math.random() * 100);
-      
-      // Update track progress
-      setCurrentTrack(prev => ({
-        ...prev,
-        elapsed: prev.elapsed >= prev.duration ? 0 : prev.elapsed + 1
-      }));
-      
-      // Simulate system status changes
+    let active = true;
+
+    const updateMetrics = async () => {
+      const metrics = await fetchTransmissionMetrics();
+      if (!active) return;
+
+      setCurrentListeners(metrics.listeners);
+      setAudioLevel(metrics.audioLevel);
+      setIsDemoMetrics(metrics.isDemo);
       setSystemStatus(prev => ({
         ...prev,
-        musicGeneration: Math.random() > 0.7 ? 'generating' : 'standby'
+        streaming: metrics.status === 'online' ? 'optimal' : metrics.status,
+        musicGeneration: metrics.musicGeneration
       }));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const isAdminRoute = window.location.search.includes('admin');
 
@@ -73,13 +66,15 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
+    <>
+      <SEOHead />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent"></div>
       <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
-      <RadioHeader currentListeners={currentListeners} />
+      <RadioHeader currentListeners={currentListeners} isDemo={isDemoMetrics} />
       <AutoStartNotification />
 
       {/* Main Content */}
@@ -94,22 +89,45 @@ const Index = () => {
               isPlaying={isPlaying}
               onPlayPause={() => setIsPlaying(!isPlaying)}
               audioLevel={audioLevel}
+              isDemo={isDemoMetrics}
             />
 
-            <StreamingInfoCard />
+        <section id="player" className="scroll-mt-20 py-10 sm:py-14">
+          <div className="mx-auto mb-8 max-w-3xl text-center">
+            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">Player ao vivo</span>
+            <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">Ouça a rádio IA em ação.</h2>
+            <p className="mt-4 text-slate-300">
+              O player é o centro da experiência: demonstra qualidade de transmissão, voz sintética,
+              programação contínua e métricas que sustentam decisões comerciais.
+            </p>
+            <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button className="bg-cyan-500 text-slate-950 hover:bg-cyan-400" asChild>
+                <a href="#player">Ouvir agora</a>
+              </Button>
+              <Button variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white" asChild>
+                <a href="#planos">Criar minha rádio IA</a>
+              </Button>
+            </div>
           </div>
 
           {/* Enhanced Sidebar */}
           <div className="space-y-6">
             <PlaylistQueue />
-            <RealTimeStats currentListeners={currentListeners} />
+            <RealTimeStats currentListeners={currentListeners} isDemo={isDemoMetrics} />
             <AdminAccessCard />
           </div>
-        </div>
+        </section>
+
+        <FeatureGrid />
+        <PricingSection />
+        <TestimonialsSection />
+        <FAQSection />
+        <FinalCTASection />
       </main>
 
       <RadioFooter />
     </div>
+    </>
   );
 };
 
