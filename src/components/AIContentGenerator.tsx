@@ -27,21 +27,26 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { appendEvent, PersistStatus, RadioAdminState } from '@/services/radioAdminService';
 
-const AIContentGenerator = () => {
-  const [voiceSettings, setVoiceSettings] = useState({
-    selectedVoice: 'Voz Aurora Premium',
-    emotionalTone: 85,
-    speechSpeed: 70,
-    pronunciation: 90
-  });
+interface AIContentGeneratorProps {
+  adminState: RadioAdminState;
+  persistStatus: PersistStatus;
+  persistError?: string | null;
+  onChange: (updater: (current: RadioAdminState) => RadioAdminState) => void;
+}
 
-  const [musicSettings, setMusicSettings] = useState({
-    genre: 'Eletrônica Cósmica',
-    mood: 'Energético',
-    duration: 180,
-    bpm: 128
-  });
+const AIContentGenerator = ({ adminState, persistStatus, persistError, onChange }: AIContentGeneratorProps) => {
+  const voiceSettings = adminState.aiContentSettings.voiceSettings;
+  const musicSettings = adminState.aiContentSettings.musicSettings;
+
+  const setVoiceSettings = (nextVoiceSettings: typeof voiceSettings) => {
+    onChange((current) => appendEvent({ ...current, aiContentSettings: { ...current.aiContentSettings, voiceSettings: nextVoiceSettings } }, { type: 'ai-content', title: 'Voz IA atualizada', description: `Voz ${nextVoiceSettings.selectedVoice} configurada.` }));
+  };
+
+  const setMusicSettings = (nextMusicSettings: typeof musicSettings) => {
+    onChange((current) => appendEvent({ ...current, aiContentSettings: { ...current.aiContentSettings, musicSettings: nextMusicSettings } }, { type: 'ai-content', title: 'Música IA atualizada', description: `${nextMusicSettings.genre} / ${nextMusicSettings.mood} configurado.` }));
+  };
 
   const [generationProgress, setGenerationProgress] = useState({
     voice: 0,
@@ -138,6 +143,10 @@ const AIContentGenerator = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <Badge variant="outline" className={persistStatus === 'error' ? 'border-red-500/50 text-red-400' : 'border-green-500/50 text-green-400'}>{persistStatus === 'saving' ? 'Salvando...' : persistStatus === 'loading' ? 'Carregando...' : persistStatus === 'error' ? 'Erro' : 'Persistido'}</Badge>
+            {persistError && <span className="text-sm text-yellow-300">{persistError}</span>}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20">
               <Mic className="w-12 h-12 mx-auto mb-3 text-purple-400" />
