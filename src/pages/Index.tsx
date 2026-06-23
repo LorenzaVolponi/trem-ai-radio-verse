@@ -6,16 +6,10 @@ import AutoStartNotification from '@/components/AutoStartNotification';
 import PlaylistQueue from '@/components/PlaylistQueue';
 import RealTimeStats from '@/components/RealTimeStats';
 import RadioFooter from '@/components/RadioFooter';
-import HeroSection from '@/components/landing/HeroSection';
-import FeatureGrid from '@/components/landing/FeatureGrid';
-import PricingSection from '@/components/landing/PricingSection';
-import TestimonialsSection from '@/components/landing/TestimonialsSection';
-import FAQSection from '@/components/landing/FAQSection';
-import FinalCTASection from '@/components/landing/FinalCTASection';
-import { Button } from '@/components/ui/button';
+import { demoMode, fetchTransmissionMetrics } from '@/services/metrics';
 
 const Index = () => {
-  const [currentListeners, setCurrentListeners] = useState(2847);
+  const [currentListeners, setCurrentListeners] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentTrack, setCurrentTrack] = useState({
     title: "Voz do Amanhã Premium",
@@ -28,28 +22,39 @@ const Index = () => {
     aiEngine: 'online',
     streaming: 'optimal',
     voiceCloning: 'active',
-    musicGeneration: 'generating'
+    musicGeneration: 'standby'
   });
+  const [isDemoMetrics, setIsDemoMetrics] = useState(demoMode);
   
   // Real-time listeners and system monitoring
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentListeners(prev => prev + Math.floor(Math.random() * 20) - 10);
-      setAudioLevel(Math.random() * 100);
-      
-      // Update track progress
+    let active = true;
+
+    const updateMetrics = async () => {
+      const metrics = await fetchTransmissionMetrics();
+      if (!active) return;
+
+      setCurrentListeners(metrics.listeners);
+      setAudioLevel(metrics.audioLevel);
+      setIsDemoMetrics(metrics.isDemo);
+      setSystemStatus(prev => ({
+        ...prev,
+        streaming: metrics.status === 'online' ? 'optimal' : metrics.status,
+        musicGeneration: metrics.musicGeneration
+      }));
+
       setCurrentTrack(prev => ({
         ...prev,
         elapsed: prev.elapsed >= prev.duration ? 0 : prev.elapsed + 1
       }));
-      
-      // Simulate system status changes
-      setSystemStatus(prev => ({
-        ...prev,
-        musicGeneration: Math.random() > 0.7 ? 'generating' : 'standby'
-      }));
-    }, 1000);
-    return () => clearInterval(interval);
+    };
+
+    updateMetrics();
+    const interval = setInterval(updateMetrics, 1000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return (
@@ -61,11 +66,23 @@ const Index = () => {
       <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
-      <RadioHeader currentListeners={currentListeners} />
+      <RadioHeader currentListeners={currentListeners} isDemo={isDemoMetrics} />
       <AutoStartNotification />
 
-      <main className="container relative z-10 mx-auto px-4 sm:px-6">
-        <HeroSection />
+      {/* Main Content */}
+      <main className="container mx-auto px-6 py-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Enhanced Player Area */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Live Audio Player */}
+            <LiveAudioPlayer 
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              onPlayPause={() => setIsPlaying(!isPlaying)}
+              audioLevel={audioLevel}
+              isDemo={isDemoMetrics}
+            />
 
         <section id="player" className="scroll-mt-20 py-10 sm:py-14">
           <div className="mx-auto mb-8 max-w-3xl text-center">
@@ -85,20 +102,11 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-            <div className="space-y-6">
-              <LiveAudioPlayer 
-                currentTrack={currentTrack}
-                isPlaying={isPlaying}
-                onPlayPause={() => setIsPlaying(!isPlaying)}
-                audioLevel={audioLevel}
-              />
-            </div>
-
-            <aside className="space-y-6">
-              <RealTimeStats currentListeners={currentListeners} />
-              <PlaylistQueue />
-            </aside>
+          {/* Enhanced Sidebar */}
+          <div className="space-y-6">
+            <PlaylistQueue />
+            <RealTimeStats currentListeners={currentListeners} isDemo={isDemoMetrics} />
+            <AdminAccessCard />
           </div>
         </section>
 

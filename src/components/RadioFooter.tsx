@@ -6,7 +6,8 @@ import {
   LogIn, 
   Settings,
   Brain,
-  Wifi
+  Wifi,
+  ShieldCheck
 } from 'lucide-react';
 import { BrandBadge } from '@/components/brand';
 
@@ -19,11 +20,21 @@ const RadioFooter: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <p className="text-sm text-gray-400">
-              © 2024 Rádio Trem AI. Experiência premium autogerenciável.
+              © 2024 Rádio Trem AI. Sistema de IA autogerenciável.
             </p>
             <div className="flex space-x-2">
-              <BrandBadge tone="primary" icon={<Brain className="w-3 h-3" />}>IA</BrandBadge>
-              <BrandBadge tone="success" icon={<Wifi className="w-3 h-3" />}>Auto 24/7</BrandBadge>
+              <Badge variant="outline" className="border-purple-500/50 text-purple-400">
+                <Brain className="w-3 h-3 mr-1" />
+                IA autogerenciável
+              </Badge>
+              <Badge variant="outline" className="border-green-500/50 text-green-400">
+                <Wifi className="w-3 h-3 mr-1" />
+                Auto-Start 24/7
+              </Badge>
+              <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
+                <ShieldCheck className="w-3 h-3 mr-1" />
+                Sem ranking auditado
+              </Badge>
             </div>
           </div>
           
@@ -49,7 +60,7 @@ const RadioFooter: React.FC = () => {
               </Button>
             </div>
             <p className="text-xs text-gray-500">
-              Rádio IA autogerenciável - transmissão premium 24/7
+              Sistema de rádio IA autogerenciável - Transmissão 24/7
             </p>
           </div>
         </div>

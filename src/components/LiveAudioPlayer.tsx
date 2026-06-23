@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
+import { createVisualizerBars } from '@/services/metrics';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
@@ -10,6 +12,7 @@ import {
   Radio,
   Wifi,
   Brain,
+  ShieldCheck,
   Heart,
   Zap
 } from 'lucide-react';
@@ -25,13 +28,15 @@ interface LiveAudioPlayerProps {
   isPlaying: boolean;
   onPlayPause: () => void;
   audioLevel: number;
+  isDemo?: boolean;
 }
 
 const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
   currentTrack,
   isPlaying,
   onPlayPause,
-  audioLevel
+  audioLevel,
+  isDemo = false
 }) => {
   const [volume, setVolume] = useState(75);
   const [isMuted, setIsMuted] = useState(false);
@@ -75,7 +80,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
     if (isPlaying && streamState === 'online') {
       const interval = setInterval(() => {
         setVisualizerBars(prev => 
-          prev.map(() => Math.random() * 100)
+          createVisualizerBars(prev.length)
         );
       }, 100);
       return () => clearInterval(interval);
@@ -142,10 +147,20 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
           <div className="flex items-center justify-center space-x-2 mb-2">
             <BrandBadge tone="live" icon={<Wifi className="w-3 h-3" />}>
               AO VIVO 24/7
-            </BrandBadge>
-            <BrandBadge tone="primary" icon={<Brain className="w-3 h-3" />}>
-              Curadoria IA
-            </BrandBadge>
+            </Badge>
+            <Badge variant="outline" className="border-purple-500/50 text-purple-400">
+              <Brain className="w-3 h-3 mr-1" />
+              IA autogerenciável
+            </Badge>
+            <Badge variant="outline" className="border-slate-400/50 text-slate-300">
+              <ShieldCheck className="w-3 h-3 mr-1" />
+              Sem ranking auditado
+            </Badge>
+            {isDemo && (
+              <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
+                Demonstração
+              </Badge>
+            )}
           </div>
           
           <SectionHeading
@@ -233,7 +248,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
             </div>
             <div className="flex items-center space-x-1">
               <Brain className="w-4 h-4 text-purple-400" />
-              <span>IA Performance: 99.7%</span>
+              <span>Performance IA demo: 99.7%</span>
             </div>
           </div>
         </div>

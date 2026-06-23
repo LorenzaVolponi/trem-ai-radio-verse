@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import StreamingStatusCard from './StreamingStatusCard';
 import CurrentTrackDisplay from './CurrentTrackDisplay';
 import StreamingMetrics from './StreamingMetrics';
 import SystemHealthMonitor from './SystemHealthMonitor';
 import AIContentStatus from './AIContentStatus';
+import { demoMode, fetchTransmissionMetrics } from '@/services/metrics';
 
 interface StreamingState {
   isLive: boolean;
@@ -32,13 +33,14 @@ const AutoStreamingEngine = () => {
       duration: 255,
       elapsed: 0
     },
-    listeners: 1847,
+    listeners: 0,
     quality: 'Ultra HD',
     bitrate: 320,
-    latency: 78
+    latency: 0
   });
 
   const [audioLevel, setAudioLevel] = useState(0);
+  const [isDemoMetrics, setIsDemoMetrics] = useState(demoMode);
   const [systemHealth, setSystemHealth] = useState({
     cpu: 45,
     memory: 62,
@@ -48,47 +50,57 @@ const AutoStreamingEngine = () => {
 
   const { toast } = useToast();
 
-  // Auto-start streaming when component mounts
-  useEffect(() => {
-    if (streamState.autoMode) {
-      startAutoStreaming();
-    }
-  }, []);
 
-  // Simulate real-time metrics
+
+  // Real-time metrics from metrics service (or explicit demo data)
   useEffect(() => {
-    const interval = setInterval(() => {
+    let active = true;
+
+    const updateMetrics = async () => {
+      const metrics = await fetchTransmissionMetrics();
+      if (!active) return;
+
       setStreamState(prev => ({
         ...prev,
-        listeners: prev.listeners + Math.floor(Math.random() * 20) - 10,
-        latency: Math.max(50, Math.min(120, prev.latency + (Math.random() - 0.5) * 10)),
+        listeners: metrics.listeners,
+        latency: metrics.latencyMs,
         currentTrack: {
           ...prev.currentTrack,
           elapsed: prev.currentTrack.elapsed + 1
         }
       }));
 
-      setAudioLevel(Math.random() * 100);
-      
+      setAudioLevel(metrics.audioLevel);
+      setIsDemoMetrics(metrics.isDemo);
       setSystemHealth(prev => ({
         ...prev,
-        cpu: Math.max(20, Math.min(80, prev.cpu + (Math.random() - 0.5) * 5)),
-        memory: Math.max(30, Math.min(85, prev.memory + (Math.random() - 0.5) * 3)),
-        bandwidth: Math.max(5, Math.min(15, prev.bandwidth + (Math.random() - 0.5) * 1)),
-        uptime: prev.uptime + 1
+        uptime: metrics.uptimeSeconds
       }));
-    }, 1000);
+    };
 
-    return () => clearInterval(interval);
+    updateMetrics();
+    const interval = setInterval(updateMetrics, 1000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, []);
 
-  const startAutoStreaming = () => {
+  const startAutoStreaming = useCallback(() => {
     setStreamState(prev => ({ ...prev, isLive: true }));
     toast({
       title: "Transmissão Iniciada Automaticamente",
       description: "Sistema autogerenciável ativo 24/7",
     });
-  };
+  }, [toast]);
+
+  // Auto-start streaming when component mounts
+  useEffect(() => {
+    if (streamState.autoMode) {
+      startAutoStreaming();
+    }
+  }, [startAutoStreaming, streamState.autoMode]);
 
   const toggleAutoMode = () => {
     setStreamState(prev => ({ ...prev, autoMode: !prev.autoMode }));
@@ -116,6 +128,7 @@ const AutoStreamingEngine = () => {
         quality={streamState.quality}
         latency={streamState.latency}
         uptime={systemHealth.uptime}
+        isDemo={isDemoMetrics}
       />
 
       <SystemHealthMonitor systemHealth={systemHealth} />
