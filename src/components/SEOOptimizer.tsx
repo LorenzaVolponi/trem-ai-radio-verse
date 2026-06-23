@@ -113,40 +113,30 @@ const SEOOptimizer = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const generateSitemap = () => {
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://radiotrem.ai/</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://radiotrem.ai/playlist</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://radiotrem.ai/sobre</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-</urlset>`;
+  const requestSitemapRefresh = async () => {
+    try {
+      const response = await fetch('/api/admin/sitemap/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    const blob = new Blob([sitemap], { type: 'application/xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'sitemap.xml';
-    a.click();
+      if (!response.ok) {
+        throw new Error('Falha ao solicitar atualização do sitemap');
+      }
 
-    toast({
-      title: "Sitemap gerado!",
-      description: "O arquivo sitemap.xml foi baixado com sucesso",
-    });
+      toast({
+        title: "Atualização solicitada",
+        description: "O backend administrativo foi acionado para atualizar o sitemap.xml público.",
+      });
+    } catch {
+      toast({
+        title: "Não foi possível atualizar",
+        description: "Configure o endpoint administrativo /api/admin/sitemap/refresh para publicar o sitemap.",
+        variant: "destructive",
+      });
+    }
   };
 
   const optimizeContent = (suggestion: ContentSuggestion) => {
@@ -277,9 +267,9 @@ const SEOOptimizer = () => {
                   <Zap className="w-5 h-5 text-radio-purple" />
                   <span>Sugestões de Conteúdo</span>
                 </div>
-                <Button onClick={generateSitemap} variant="outline" size="sm">
+                <Button onClick={requestSitemapRefresh} variant="outline" size="sm">
                   <Globe className="w-4 h-4 mr-2" />
-                  Gerar Sitemap
+                  Atualizar Sitemap
                 </Button>
               </CardTitle>
             </CardHeader>
