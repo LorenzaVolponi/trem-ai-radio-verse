@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useCallback, useState, useEffect } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,13 +12,9 @@ import {
   Settings, 
   LogOut,
   Brain,
-  Music,
-  Mic,
   Globe,
   BarChart3,
   Zap,
-  Play,
-  Pause,
   Volume2,
   Headphones,
   CheckCircle2,
@@ -27,6 +23,8 @@ import {
   Crown,
   Star
 } from 'lucide-react';
+import RealtimeStatusAlert, { RealtimeState } from './RealtimeStatusAlert';
+import { useToast } from '@/components/ui/use-toast';
 import AutoStreamingEngine from './AutoStreamingEngine';
 import AIContentGenerator from './AIContentGenerator';
 import StreamingEngine from './StreamingEngine';
@@ -47,9 +45,50 @@ const RadioDashboard = () => {
     totalListeners: 12847,
     uptime: 99.98
   });
+  const [metricsState, setMetricsState] = useState<RealtimeState | 'ready'>('loading');
+
+  const loadAdminMetrics = useCallback(() => {
+    setMetricsState('loading');
+
+    window.setTimeout(() => {
+      if (!navigator.onLine) {
+        setMetricsState('offline');
+        toast({
+          title: 'Métricas administrativas offline',
+          description: 'Não foi possível atualizar os indicadores porque o navegador está sem conexão.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setMetricsState('ready');
+      toast({
+        title: 'Métricas administrativas atualizadas',
+        description: 'Os indicadores em tempo real foram carregados com sucesso.',
+      });
+    }, 900);
+  }, [toast]);
 
   // System monitoring
   useEffect(() => {
+    loadAdminMetrics();
+
+    const handleOffline = () => {
+      setMetricsState('offline');
+      toast({
+        title: 'Dashboard offline',
+        description: 'As métricas administrativas estão pausadas até a conexão voltar.',
+        variant: 'destructive',
+      });
+    };
+
+    const handleOnline = () => {
+      loadAdminMetrics();
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
     const interval = setInterval(() => {
       setSystemStatus(prev => ({
         ...prev,
@@ -57,12 +96,23 @@ const RadioDashboard = () => {
       }));
     }, 5000);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [loadAdminMetrics, toast]);
 
   const handleLogout = () => {
     logout();
   };
+
+  const hasMetrics = systemStatus.totalListeners > 0;
+  const visibleMetricsState: RealtimeState | null = !hasMetrics
+    ? 'empty'
+    : metricsState === 'ready'
+      ? null
+      : metricsState;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-radio-darker via-gray-900 to-radio-dark text-white">
@@ -129,6 +179,17 @@ const RadioDashboard = () => {
 
       {/* Main Dashboard Content */}
       <main className="container mx-auto px-6 py-8 relative z-10">
+        {visibleMetricsState && (
+          <RealtimeStatusAlert
+            state={visibleMetricsState}
+            title={visibleMetricsState === 'error' ? 'Falha ao carregar métricas administrativas' : undefined}
+            description={visibleMetricsState === 'error' ? 'Os cartões de status podem estar desatualizados. Tente carregar novamente.' : undefined}
+            actionLabel={visibleMetricsState === 'error' || visibleMetricsState === 'offline' ? 'Recarregar métricas' : undefined}
+            onAction={visibleMetricsState === 'error' || visibleMetricsState === 'offline' ? loadAdminMetrics : undefined}
+            className="mb-6"
+          />
+        )}
+
         {/* Quick Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="glass-effect border-white/10">
@@ -139,7 +200,9 @@ const RadioDashboard = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Status Sistema</p>
-                  <p className="text-xl font-bold text-green-400">100% Online</p>
+                  <p className={metricsState === 'ready' ? 'text-xl font-bold text-green-400' : 'text-xl font-bold text-yellow-400'}>
+                    {metricsState === 'ready' ? '100% Online' : 'Sincronizando'}
+                  </p>
                 </div>
               </div>
             </CardContent>

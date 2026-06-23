@@ -1,9 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import LiveAudioPlayer from '@/components/LiveAudioPlayer';
-import AdminLogin from '@/components/AdminLogin';
-import RadioDashboard from '@/components/RadioDashboard';
 import RadioHeader from '@/components/RadioHeader';
 import AutoStartNotification from '@/components/AutoStartNotification';
 import StreamingInfoCard from '@/components/StreamingInfoCard';
@@ -11,6 +8,7 @@ import PlaylistQueue from '@/components/PlaylistQueue';
 import RealTimeStats from '@/components/RealTimeStats';
 import AdminAccessCard from '@/components/AdminAccessCard';
 import RadioFooter from '@/components/RadioFooter';
+import SEOHead from '@/components/SEOHead';
 
 const Index = () => {
   const [currentListeners, setCurrentListeners] = useState(2847);
@@ -29,8 +27,6 @@ const Index = () => {
     musicGeneration: 'generating'
   });
   
-  const { isAuthenticated } = useAuth();
-
   // Real-time listeners and system monitoring
   useEffect(() => {
     const interval = setInterval(() => {
@@ -52,18 +48,10 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Show admin dashboard if authenticated
-  if (isAuthenticated) {
-    return <RadioDashboard />;
-  }
-
-  // Show admin login if admin parameter is present
-  if (window.location.search.includes('admin')) {
-    return <AdminLogin />;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
+    <>
+      <SEOHead />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent"></div>
       <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -87,6 +75,28 @@ const Index = () => {
             />
 
             <StreamingInfoCard />
+
+            <section className="glass-effect rounded-2xl border border-white/10 p-6 space-y-4">
+              <p className="text-sm uppercase tracking-[0.3em] text-radio-cyan font-semibold">Rádio online com IA</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-white">Rádio Trem AI: música gerada por inteligência artificial para marcas, ouvintes e programação 24/7</h1>
+              <p className="text-gray-300 leading-relaxed">
+                A Rádio Trem AI combina rádio online ao vivo, inteligência artificial generativa, locução sintética e curadoria musical automatizada para entregar uma experiência de áudio moderna, escalável e sempre disponível.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-300">
+                <div className="rounded-xl bg-white/5 p-4 border border-white/10">
+                  <strong className="block text-white mb-2">Transmissão inteligente</strong>
+                  Programação de rádio 24 horas com trilhas, vinhetas e conteúdos criados por IA.
+                </div>
+                <div className="rounded-xl bg-white/5 p-4 border border-white/10">
+                  <strong className="block text-white mb-2">Conteúdo comercial</strong>
+                  Soluções de áudio branding, spots publicitários e campanhas para rádio digital.
+                </div>
+                <div className="rounded-xl bg-white/5 p-4 border border-white/10">
+                  <strong className="block text-white mb-2">SEO para áudio</strong>
+                  Presença otimizada para buscas por rádio com IA, música artificial e streaming online.
+                </div>
+              </div>
+            </section>
           </div>
 
           {/* Enhanced Sidebar */}
@@ -100,6 +110,7 @@ const Index = () => {
 
       <RadioFooter />
     </div>
+    </>
   );
 };
 
