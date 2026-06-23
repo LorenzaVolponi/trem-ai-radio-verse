@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
 import { 
   LogIn, 
@@ -10,6 +9,7 @@ import {
   Wifi,
   ShieldCheck
 } from 'lucide-react';
+import { BrandBadge } from '@/components/brand';
 
 const RadioFooter: React.FC = () => {
   const navigate = useNavigate();

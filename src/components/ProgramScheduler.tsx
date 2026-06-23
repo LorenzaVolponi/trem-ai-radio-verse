@@ -23,72 +23,19 @@ import {
   Brain
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { appendEvent, PersistStatus, RadioAdminState, RadioProgram } from '@/services/radioAdminService';
 
-interface Program {
-  id: string;
-  name: string;
-  host: string;
-  startTime: string;
-  duration: number;
-  genre: string;
-  type: 'live' | 'ai-generated' | 'music-only';
-  status: 'active' | 'scheduled' | 'completed';
-  listeners?: number;
-  engagement?: number;
+interface ProgramSchedulerProps {
+  adminState: RadioAdminState;
+  persistStatus: PersistStatus;
+  persistError?: string | null;
+  onChange: (updater: (current: RadioAdminState) => RadioAdminState) => void;
 }
 
-const ProgramScheduler = () => {
+const ProgramScheduler = ({ adminState, persistStatus, persistError, onChange }: ProgramSchedulerProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [programs, setPrograms] = useState<Program[]>([
-    {
-      id: '1',
-      name: 'Despertar com IA',
-      host: 'Voz Aurora',
-      startTime: '06:00',
-      duration: 180,
-      genre: 'Matinal',
-      type: 'ai-generated',
-      status: 'completed',
-      listeners: 1247,
-      engagement: 87
-    },
-    {
-      id: '2',
-      name: 'Música Contínua IA',
-      host: 'Sistema Automático',
-      startTime: '09:00',
-      duration: 120,
-      genre: 'Variedades',
-      type: 'music-only',
-      status: 'active',
-      listeners: 2341,
-      engagement: 92
-    },
-    {
-      id: '3',
-      name: 'Programa Interativo',
-      host: 'Voz Creator',
-      startTime: '14:00',
-      duration: 90,
-      genre: 'Talk Show',
-      type: 'ai-generated',
-      status: 'scheduled',
-      listeners: 0,
-      engagement: 0
-    },
-    {
-      id: '4',
-      name: 'Noite Eletrônica IA',
-      host: 'Voz Nexus',
-      startTime: '20:00',
-      duration: 240,
-      genre: 'Eletrônica',
-      type: 'ai-generated',
-      status: 'scheduled',
-      listeners: 0,
-      engagement: 0
-    }
-  ]);
+  const programs = adminState.programs;
+
 
   const [newProgram, setNewProgram] = useState({
     name: '',
@@ -99,8 +46,8 @@ const ProgramScheduler = () => {
     type: 'ai-generated' as const
   });
 
-  const [autoScheduling, setAutoScheduling] = useState(true);
-  const [adaptiveContent, setAdaptiveContent] = useState(true);
+  const autoScheduling = adminState.scheduleAutomation.autoScheduling;
+  const adaptiveContent = adminState.scheduleAutomation.adaptiveContent;
   const { toast } = useToast();
 
   // Update current time
@@ -115,7 +62,7 @@ const ProgramScheduler = () => {
   // Simulate program status updates
   useEffect(() => {
     const interval = setInterval(() => {
-      setPrograms(prev => prev.map(program => {
+      onChange((current) => ({ ...current, programs: current.programs.map(program => {
         if (program.status === 'active') {
           return {
             ...program,
@@ -124,7 +71,7 @@ const ProgramScheduler = () => {
           };
         }
         return program;
-      }));
+      }) }));
     }, 3000);
 
     return () => clearInterval(interval);
@@ -132,7 +79,7 @@ const ProgramScheduler = () => {
 
   const addProgram = () => {
     if (newProgram.name && newProgram.startTime) {
-      const program: Program = {
+      const program: RadioProgram = {
         id: Date.now().toString(),
         ...newProgram,
         status: 'scheduled',
@@ -140,7 +87,7 @@ const ProgramScheduler = () => {
         engagement: 0
       };
 
-      setPrograms([...programs, program]);
+      onChange((current) => appendEvent({ ...current, programs: [...current.programs, program] }, { type: 'program', title: 'Programa adicionado', description: `${program.name} agendado para ${program.startTime}` }));
       setNewProgram({
         name: '',
         host: '',
@@ -158,7 +105,7 @@ const ProgramScheduler = () => {
   };
 
   const removeProgram = (id: string) => {
-    setPrograms(programs.filter(p => p.id !== id));
+    onChange((current) => appendEvent({ ...current, programs: current.programs.filter(p => p.id !== id) }, { type: 'program', title: 'Programa removido', description: 'Programa removido da grade.' }));
     toast({
       title: "Programa removido",
       description: "Programa foi removido da grade",
@@ -199,6 +146,7 @@ const ProgramScheduler = () => {
             <div className="flex items-center space-x-2">
               <Calendar className="w-5 h-5 text-radio-purple" />
               <span>Programação 24/7</span>
+              <Badge variant="outline" className={persistStatus === 'error' ? 'border-red-500/50 text-red-400' : 'border-green-500/50 text-green-400'}>{persistStatus === 'loading' ? 'Carregando...' : persistStatus === 'saving' ? 'Salvando...' : persistStatus === 'error' ? 'Erro ao salvar' : 'Persistido'}</Badge>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
@@ -209,6 +157,7 @@ const ProgramScheduler = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {persistError && <p className="mb-4 text-sm text-yellow-300">{persistError}</p>}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-white/5 rounded-lg">
               <Play className="w-8 h-8 mx-auto mb-2 text-green-400" />
@@ -361,7 +310,7 @@ const ProgramScheduler = () => {
             
             <select
               value={newProgram.type}
-              onChange={(e) => setNewProgram({...newProgram, type: e.target.value as any})}
+              onChange={(e) => setNewProgram({...newProgram, type: e.target.value as RadioProgram['type']})}
               className="glass-effect border-white/20 bg-white/5 text-white rounded-md px-3 py-2"
             >
               <option value="ai-generated">IA Generated</option>
@@ -397,7 +346,7 @@ const ProgramScheduler = () => {
             <Button
               variant={autoScheduling ? "default" : "outline"}
               size="sm"
-              onClick={() => setAutoScheduling(!autoScheduling)}
+              onClick={() => onChange((current) => appendEvent({ ...current, scheduleAutomation: { ...current.scheduleAutomation, autoScheduling: !autoScheduling } }, { type: 'program', title: 'Automação alterada', description: `Programação automática ${!autoScheduling ? 'ativada' : 'desativada'}.` }))}
               className={autoScheduling ? "bg-radio-purple" : ""}
             >
               {autoScheduling ? "Ativado" : "Desativado"}
@@ -412,7 +361,7 @@ const ProgramScheduler = () => {
             <Button
               variant={adaptiveContent ? "default" : "outline"}
               size="sm"
-              onClick={() => setAdaptiveContent(!adaptiveContent)}
+              onClick={() => onChange((current) => appendEvent({ ...current, scheduleAutomation: { ...current.scheduleAutomation, adaptiveContent: !adaptiveContent } }, { type: 'program', title: 'Conteúdo adaptativo alterado', description: `Conteúdo adaptativo ${!adaptiveContent ? 'ativado' : 'desativado'}.` }))}
               className={adaptiveContent ? "bg-radio-green" : ""}
             >
               {adaptiveContent ? "Ativado" : "Desativado"}

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { createVisualizerBars } from '@/services/metrics';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
   Play, 
@@ -17,6 +16,7 @@ import {
   Heart,
   Zap
 } from 'lucide-react';
+import { BrandBadge, GradientPanel, SectionHeading } from '@/components/brand';
 
 interface LiveAudioPlayerProps {
   currentTrack: {
@@ -41,9 +41,43 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
   const [volume, setVolume] = useState(75);
   const [isMuted, setIsMuted] = useState(false);
   const [visualizerBars, setVisualizerBars] = useState<number[]>(Array(20).fill(0));
+  const [streamState, setStreamState] = useState<RealtimeState | 'online'>('loading');
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (isPlaying) {
+    const finishInitialSync = window.setTimeout(() => {
+      setStreamState(navigator.onLine ? 'online' : 'offline');
+    }, 800);
+
+    const handleOffline = () => {
+      setStreamState('offline');
+      toast({
+        title: 'Player offline',
+        description: 'A transmissão será retomada quando a conexão voltar.',
+        variant: 'destructive',
+      });
+    };
+
+    const handleOnline = () => {
+      setStreamState('online');
+      toast({
+        title: 'Conexão restaurada',
+        description: 'O player ao vivo voltou a receber o stream.',
+      });
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.clearTimeout(finishInitialSync);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [toast]);
+
+  useEffect(() => {
+    if (isPlaying && streamState === 'online') {
       const interval = setInterval(() => {
         setVisualizerBars(prev => 
           createVisualizerBars(prev.length)
@@ -51,7 +85,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [isPlaying]);
+  }, [isPlaying, streamState]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -61,22 +95,57 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
 
   const progressPercentage = (currentTrack.elapsed / currentTrack.duration) * 100;
 
+  const handlePlayPause = () => {
+    if (streamState === 'offline' || streamState === 'error') {
+      toast({
+        title: 'Stream indisponível',
+        description: 'Use o botão Tentar novamente para reconectar a transmissão.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    onPlayPause();
+  };
+
+  const handleRetryStream = () => {
+    setStreamState('loading');
+    window.setTimeout(() => {
+      if (!navigator.onLine) {
+        setStreamState('offline');
+        toast({
+          title: 'Sem internet',
+          description: 'Não foi possível reconectar porque o navegador está offline.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setStreamState('online');
+      toast({
+        title: 'Stream reconectado',
+        description: 'A transmissão ao vivo está disponível novamente.',
+      });
+    }, 900);
+  };
+
+  const hasTrack = Boolean(currentTrack.title && currentTrack.artist);
+  const visibleState: RealtimeState | null = !hasTrack ? 'empty' : streamState === 'online' ? null : streamState;
+
   return (
-    <Card className="backdrop-blur-md bg-gradient-to-br from-purple-500/20 via-pink-500/10 to-cyan-500/20 border-white/20 shadow-2xl">
-      <CardContent className="p-6">
+    <GradientPanel variant="hero" className="animate-brand-fade-up p-6">
         <div className="text-center mb-6">
           <div className="relative inline-block">
-            <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full flex items-center justify-center animate-pulse shadow-2xl shadow-purple-500/50 mb-4 mx-auto">
+            <div className="w-24 h-24 bg-brand-cta rounded-full flex items-center justify-center shadow-brand-glow mb-4 mx-auto">
               <Radio className="w-12 h-12 text-white" />
             </div>
-            <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full border-2 border-white flex items-center justify-center animate-bounce">
+            <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full border-2 border-white flex items-center justify-center">
               <Wifi className="w-3 h-3 text-white" />
             </div>
           </div>
           
           <div className="flex items-center justify-center space-x-2 mb-2">
-            <Badge variant="outline" className="border-red-500/50 text-red-400 animate-pulse">
-              <Wifi className="w-3 h-3 mr-1" />
+            <BrandBadge tone="live" icon={<Wifi className="w-3 h-3" />}>
               AO VIVO 24/7
             </Badge>
             <Badge variant="outline" className="border-purple-500/50 text-purple-400">
@@ -94,20 +163,22 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
             )}
           </div>
           
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-            🎵 {currentTrack.title} 🎵
-          </h2>
-          <p className="text-xl text-purple-300 mb-4">{currentTrack.artist}</p>
+          <SectionHeading
+            className="mb-4 items-center text-center md:block"
+            eyebrow="Rádio premium autogerenciável"
+            title={<span className="bg-gradient-to-r from-purple-300 to-cyan-200 bg-clip-text text-transparent">{currentTrack.title}</span>}
+            description={<span className="text-purple-200">{currentTrack.artist}</span>}
+          />
           
           {/* Audio Visualizer */}
           <div className="flex items-end justify-center space-x-1 h-16 mb-4">
             {visualizerBars.map((height, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-t from-purple-500 to-cyan-400 rounded-full transition-all duration-100 w-2"
+                className="bg-gradient-to-t from-radio-purple to-radio-cyan rounded-full transition-all duration-100 w-2"
                 style={{ 
-                  height: isPlaying ? `${Math.max(height * 0.6, 10)}%` : '10%',
-                  opacity: isPlaying ? 1 : 0.3
+                  height: isPlaying && streamState === 'online' ? `${Math.max(height * 0.6, 10)}%` : '10%',
+                  opacity: isPlaying && streamState === 'online' ? 1 : 0.3
                 }}
               />
             ))}
@@ -128,9 +199,9 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
           {/* Control Buttons */}
           <div className="flex items-center justify-center space-x-4 mb-4">
             <Button
-              onClick={onPlayPause}
+              onClick={handlePlayPause}
               size="lg"
-              className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transition-all duration-300"
+              className="w-16 h-16 rounded-full bg-brand-cta shadow-brand-glow transition-brand hover:scale-105"
             >
               {isPlaying ? (
                 <Pause className="w-8 h-8 text-white" />
@@ -181,8 +252,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+    </GradientPanel>
   );
 };
 
