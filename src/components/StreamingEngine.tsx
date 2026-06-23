@@ -26,6 +26,7 @@ import {
   Server
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { appendEvent, PersistStatus, RadioAdminState } from '@/services/radioAdminService';
 
 interface StreamMetrics {
   listeners: number;
@@ -41,9 +42,15 @@ interface AudioLevel {
   right: number;
 }
 
-const StreamingEngine = () => {
-  const [isStreaming, setIsStreaming] = useState(true);
-  const [autoMode, setAutoMode] = useState(true);
+interface StreamingEngineProps {
+  adminState: RadioAdminState;
+  persistStatus: PersistStatus;
+  persistError?: string | null;
+  onChange: (updater: (current: RadioAdminState) => RadioAdminState) => void;
+}
+
+const StreamingEngine = ({ adminState, persistStatus, persistError, onChange }: StreamingEngineProps) => {
+  const { isStreaming, autoMode } = adminState.streamSettings;
   const [streamMetrics, setStreamMetrics] = useState<StreamMetrics>({
     listeners: 1247,
     bitrate: 320,
@@ -53,9 +60,9 @@ const StreamingEngine = () => {
     bandwidth: 8.5
   });
   const [audioLevels, setAudioLevels] = useState<AudioLevel>({ left: 0, right: 0 });
-  const [streamQuality, setStreamQuality] = useState([320]);
-  const [bufferSize, setBufferSize] = useState([8]);
-  const [crossfadeDuration, setCrossfadeDuration] = useState([3]);
+  const streamQuality = [adminState.streamSettings.streamQuality];
+  const bufferSize = [adminState.streamSettings.bufferSize];
+  const crossfadeDuration = [adminState.streamSettings.crossfadeDuration];
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const { toast } = useToast();
@@ -83,7 +90,7 @@ const StreamingEngine = () => {
   }, []);
 
   const toggleStreaming = () => {
-    setIsStreaming(!isStreaming);
+    onChange((current) => appendEvent({ ...current, streamSettings: { ...current.streamSettings, isStreaming: !isStreaming } }, { type: 'stream', title: isStreaming ? 'Stream pausado' : 'Stream iniciado', description: isStreaming ? 'Transmissão pausada pelo painel.' : 'Transmissão iniciada pelo painel.' }));
     toast({
       title: isStreaming ? "Stream Pausado" : "Stream Iniciado",
       description: isStreaming ? "Transmissão pausada" : "Transmissão iniciada com sucesso",
@@ -202,10 +209,11 @@ const StreamingEngine = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Settings className="w-5 h-5 text-radio-cyan" />
-            <span>Configurações de Stream</span>
+            <span>Configurações de Stream</span><Badge variant="outline" className={persistStatus === 'error' ? 'border-red-500/50 text-red-400' : 'border-green-500/50 text-green-400'}>{persistStatus === 'saving' ? 'Salvando...' : persistStatus === 'loading' ? 'Carregando...' : persistStatus === 'error' ? 'Erro' : 'Persistido'}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {persistError && <p className="text-sm text-yellow-300">{persistError}</p>}
           {/* Modo Automático */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
             <div className="flex items-center space-x-2">
@@ -214,7 +222,7 @@ const StreamingEngine = () => {
             </div>
             <Switch 
               checked={autoMode}
-              onCheckedChange={setAutoMode}
+              onCheckedChange={(checked) => onChange((current) => appendEvent({ ...current, streamSettings: { ...current.streamSettings, autoMode: checked } }, { type: 'stream', title: 'Modo automático alterado', description: `Modo automático ${checked ? 'ativado' : 'desativado'}.` }))}
             />
           </div>
 
@@ -226,7 +234,7 @@ const StreamingEngine = () => {
               </label>
               <Slider
                 value={streamQuality}
-                onValueChange={setStreamQuality}
+                onValueChange={(value) => onChange((current) => appendEvent({ ...current, streamSettings: { ...current.streamSettings, streamQuality: value[0] } }, { type: 'stream', title: 'Qualidade atualizada', description: `Stream configurado para ${value[0]}kbps.` }))}
                 max={320}
                 min={64}
                 step={32}
@@ -240,7 +248,7 @@ const StreamingEngine = () => {
               </label>
               <Slider
                 value={bufferSize}
-                onValueChange={setBufferSize}
+                onValueChange={(value) => onChange((current) => appendEvent({ ...current, streamSettings: { ...current.streamSettings, bufferSize: value[0] } }, { type: 'stream', title: 'Buffer atualizado', description: `Buffer configurado para ${value[0]}s.` }))}
                 max={30}
                 min={2}
                 step={1}
@@ -254,7 +262,7 @@ const StreamingEngine = () => {
               </label>
               <Slider
                 value={crossfadeDuration}
-                onValueChange={setCrossfadeDuration}
+                onValueChange={(value) => onChange((current) => appendEvent({ ...current, streamSettings: { ...current.streamSettings, crossfadeDuration: value[0] } }, { type: 'stream', title: 'Crossfade atualizado', description: `Crossfade configurado para ${value[0]}s.` }))}
                 max={10}
                 min={0}
                 step={0.5}

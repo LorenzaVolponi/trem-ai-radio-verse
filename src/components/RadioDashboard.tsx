@@ -16,6 +16,9 @@ import {
   BarChart3,
   Zap,
   Volume2,
+  Headphones,
+  CheckCircle2,
+  History,
   Trophy,
   Crown,
   Star
@@ -29,10 +32,11 @@ import GlobalRadioMonitor from './GlobalRadioMonitor';
 import AdvancedAudioEngine from './AdvancedAudioEngine';
 import ProgramScheduler from './ProgramScheduler';
 import AdvancedAnalytics from './AdvancedAnalytics';
+import { useRadioAdminState } from '@/hooks/useRadioAdminState';
 
 const RadioDashboard = () => {
   const { logout, user } = useAuth();
-  const { toast } = useToast();
+  const { state: adminState, updateAndPersist, publish, status: persistStatus, error: persistError, lastSavedAt } = useRadioAdminState();
   const [systemStatus, setSystemStatus] = useState({
     streaming: true,
     aiEngine: true,
@@ -249,7 +253,7 @@ const RadioDashboard = () => {
 
         {/* Advanced Control Tabs */}
         <Tabs defaultValue="monitor" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 glass-effect border border-white/10">
+          <TabsList className="grid w-full grid-cols-8 glass-effect border border-white/10">
             <TabsTrigger value="monitor" className="data-[state=active]:bg-radio-purple/30">
               <Globe className="w-4 h-4 mr-1" />
               <span className="hidden sm:inline">Monitor Global</span>
@@ -274,6 +278,10 @@ const RadioDashboard = () => {
               <BarChart3 className="w-4 h-4 mr-1" />
               <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
+            <TabsTrigger value="publish" className="data-[state=active]:bg-radio-purple/30">
+              <CheckCircle2 className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">Publicar</span>
+            </TabsTrigger>
             <TabsTrigger value="advanced" className="data-[state=active]:bg-radio-purple/30">
               <Zap className="w-4 h-4 mr-1" />
               <span className="hidden sm:inline">Advanced</span>
@@ -289,7 +297,7 @@ const RadioDashboard = () => {
           </TabsContent>
 
           <TabsContent value="ai-content" className="space-y-6">
-            <AIContentGenerator />
+            <AIContentGenerator adminState={adminState} persistStatus={persistStatus} persistError={persistError} onChange={updateAndPersist} />
           </TabsContent>
 
           <TabsContent value="audio-engine" className="space-y-6">
@@ -297,15 +305,49 @@ const RadioDashboard = () => {
           </TabsContent>
 
           <TabsContent value="scheduler" className="space-y-6">
-            <ProgramScheduler />
+            <ProgramScheduler adminState={adminState} persistStatus={persistStatus} persistError={persistError} onChange={updateAndPersist} />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
             <AdvancedAnalytics />
           </TabsContent>
 
+          <TabsContent value="publish" className="space-y-6">
+            <Card className="glass-effect border-white/10">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-radio-green" /> Publicar programação</span>
+                  <Badge variant="outline" className={persistStatus === 'error' ? 'border-red-500/50 text-red-400' : 'border-green-500/50 text-green-400'}>{persistStatus === 'saving' ? 'Salvando...' : persistStatus === 'loading' ? 'Carregando...' : persistStatus === 'error' ? 'Erro' : 'Pronto'}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {persistError && <p className="text-sm text-yellow-300">{persistError}</p>}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-white/5 rounded-lg"><p className="text-2xl font-bold">{adminState.programs.length}</p><p className="text-sm text-gray-400">Programas</p></div>
+                  <div className="p-4 bg-white/5 rounded-lg"><p className="text-2xl font-bold">{adminState.tracks.length}</p><p className="text-sm text-gray-400">Faixas</p></div>
+                  <div className="p-4 bg-white/5 rounded-lg"><p className="text-2xl font-bold">{adminState.jingles.length}</p><p className="text-sm text-gray-400">Vinhetas</p></div>
+                  <div className="p-4 bg-white/5 rounded-lg"><p className="text-2xl font-bold">{adminState.advertisements.length}</p><p className="text-sm text-gray-400">Anúncios</p></div>
+                </div>
+                <div className="p-4 bg-white/5 rounded-lg">
+                  <h3 className="font-semibold mb-2">Revisão de mudanças</h3>
+                  <p className="text-sm text-gray-300">Stream: {adminState.streamSettings.isStreaming ? 'ao vivo' : 'offline'} · {adminState.streamSettings.streamQuality}kbps · IA: {adminState.aiContentSettings.voiceSettings.selectedVoice}</p>
+                  <p className="text-xs text-gray-500 mt-2">Último salvamento: {lastSavedAt ? new Date(lastSavedAt).toLocaleString('pt-BR') : 'aguardando alterações'}</p>
+                  {adminState.activePublication && <p className="text-xs text-green-400 mt-1">Publicação ativa: {new Date(adminState.activePublication.publishedAt).toLocaleString('pt-BR')}</p>}
+                </div>
+                <Button onClick={publish} className="w-full bg-radio-green hover:bg-radio-green/80"><CheckCircle2 className="w-4 h-4 mr-2" /> Revisar e ativar mudanças</Button>
+                <div className="p-4 bg-white/5 rounded-lg">
+                  <h3 className="flex items-center gap-2 font-semibold mb-3"><History className="w-4 h-4" /> Histórico de alterações</h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {adminState.events.length === 0 && <p className="text-sm text-gray-400">Nenhuma alteração registrada ainda.</p>}
+                    {adminState.events.map((event) => <div key={event.id} className="border border-white/10 rounded p-3"><p className="text-sm font-medium">{event.title}</p><p className="text-xs text-gray-400">{event.description}</p><p className="text-xs text-gray-500">{new Date(event.createdAt).toLocaleString('pt-BR')}</p></div>)}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="advanced" className="space-y-6">
-            <StreamingEngine />
+            <StreamingEngine adminState={adminState} persistStatus={persistStatus} persistError={persistError} onChange={updateAndPersist} />
           </TabsContent>
         </Tabs>
       </main>
