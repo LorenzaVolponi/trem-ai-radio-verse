@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/features/auth/components/MockAuthContext';
 import { 
   Radio, 
   Users, 
@@ -25,13 +25,13 @@ import {
   Crown,
   Star
 } from 'lucide-react';
-import AutoStreamingEngine from './AutoStreamingEngine';
-import AIContentGenerator from './AIContentGenerator';
-import StreamingEngine from './StreamingEngine';
-import GlobalRadioMonitor from './GlobalRadioMonitor';
-import AdvancedAudioEngine from './AdvancedAudioEngine';
-import ProgramScheduler from './ProgramScheduler';
-import AdvancedAnalytics from './AdvancedAnalytics';
+import AutoStreamingEngine from '@/features/radio/components/AutoStreamingEngine';
+import AIContentGenerator from '@/features/admin/components/AIContentGenerator';
+import StreamingEngine from '@/features/radio/components/StreamingEngine';
+import GlobalRadioMonitor from '@/features/analytics/components/GlobalRadioMonitor';
+import AdvancedAudioEngine from '@/features/radio/components/AdvancedAudioEngine';
+import ProgramScheduler from '@/features/admin/components/ProgramScheduler';
+import AdvancedAnalytics from '@/features/analytics/components/AdvancedAnalytics';
 
 const RadioDashboard = () => {
   const { logout, user } = useAuth();

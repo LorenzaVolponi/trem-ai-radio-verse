@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import StreamingStatusCard from './StreamingStatusCard';
-import CurrentTrackDisplay from './CurrentTrackDisplay';
-import StreamingMetrics from './StreamingMetrics';
-import SystemHealthMonitor from './SystemHealthMonitor';
-import AIContentStatus from './AIContentStatus';
+import StreamingStatusCard from '@/features/radio/components/StreamingStatusCard';
+import CurrentTrackDisplay from '@/features/radio/components/CurrentTrackDisplay';
+import StreamingMetrics from '@/features/analytics/components/StreamingMetrics';
+import SystemHealthMonitor from '@/features/analytics/components/SystemHealthMonitor';
+import AIContentStatus from '@/features/radio/components/AIContentStatus';
 
 interface StreamingState {
   isLive: boolean;

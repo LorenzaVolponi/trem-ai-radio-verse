@@ -25,7 +25,7 @@ import {
   Cpu,
   HardDrive
 } from 'lucide-react';
-import VoiceCloningSystem from '@/components/VoiceCloningSystem';
+import VoiceCloningSystem from '@/features/admin/components/VoiceCloningSystem';
 
 const AdminPanel = () => {
   const [aiSettings, setAiSettings] = useState({
