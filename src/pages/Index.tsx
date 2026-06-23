@@ -1,9 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import LiveAudioPlayer from '@/components/LiveAudioPlayer';
-import AdminLogin from '@/components/AdminLogin';
-import RadioDashboard from '@/components/RadioDashboard';
 import RadioHeader from '@/components/RadioHeader';
 import AutoStartNotification from '@/components/AutoStartNotification';
 import PlaylistQueue from '@/components/PlaylistQueue';
@@ -34,8 +31,6 @@ const Index = () => {
     musicGeneration: 'generating'
   });
   
-  const { isAuthenticated } = useAuth();
-
   // Real-time listeners and system monitoring
   useEffect(() => {
     const interval = setInterval(() => {
@@ -57,18 +52,10 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Show admin dashboard if authenticated
-  if (isAuthenticated) {
-    return <RadioDashboard />;
-  }
-
-  // Show admin login if admin parameter is present
-  if (window.location.search.includes('admin')) {
-    return <AdminLogin />;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
+    <>
+      <SEOHead />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-radial from-purple-500/20 via-transparent to-transparent"></div>
       <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
@@ -124,6 +111,7 @@ const Index = () => {
 
       <RadioFooter />
     </div>
+    </>
   );
 };
 

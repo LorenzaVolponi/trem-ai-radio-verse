@@ -1,7 +1,5 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
   Radio, 
@@ -9,71 +7,37 @@ import {
   Brain,
   Server,
   Mic2,
-  Crown
+  Activity
 } from 'lucide-react';
+import { BrandBadge, GradientPanel, MetricCard, SectionHeading } from '@/components/brand';
 
 const StreamingInfoCard: React.FC = () => {
   return (
-    <Card className="backdrop-blur-md bg-white/5 border-white/10">
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Radio className="w-5 h-5 text-purple-400" />
-          <span>Transmissão Oscar de IA - Sistema Autogerenciável</span>
-          <Badge variant="outline" className="border-green-500/50 text-green-400">
-            <Wifi className="w-3 h-3 mr-1" />
-            Auto 24/7
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <GradientPanel className="p-6">
+      <SectionHeading
+        eyebrow="Transmissão"
+        title={<span className="flex items-center gap-2 text-xl"><Radio className="w-5 h-5 text-purple-300" /> Sistema 24/7 autogerenciável</span>}
+        actions={<BrandBadge tone="success" icon={<Wifi className="w-3 h-3" />}>Auto 24/7</BrandBadge>}
+      />
+      <div className="mt-6 space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <p className="text-sm text-gray-400">Status</p>
-            <p className="font-medium flex items-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
-              Transmitindo 24/7
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Qualidade</p>
-            <p className="font-medium text-purple-400">Ultra HD 320kbps</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Latência</p>
-            <p className="font-medium text-green-400">~67ms</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Uptime</p>
-            <p className="font-medium text-yellow-400">99.98%</p>
-          </div>
+          <MetricCard label="Status" value={<span className="flex items-center"><span className="w-2 h-2 bg-green-500 rounded-full mr-2" />Transmitindo</span>} />
+          <MetricCard label="Qualidade" value="Ultra HD 320kbps" valueClassName="text-purple-300" />
+          <MetricCard label="Latência" value="~67ms" valueClassName="text-green-300" />
+          <MetricCard label="Uptime" value="99.98%" valueClassName="text-cyan-200" />
         </div>
         
         <Separator className="bg-white/10" />
         
         <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-            <Brain className="w-3 h-3 mr-1" />
-            IA Autogerenciável
-          </Badge>
-          <Badge variant="secondary" className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">
-            <Wifi className="w-3 h-3 mr-1" />
-            Início Automático
-          </Badge>
-          <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
-            <Server className="w-3 h-3 mr-1" />
-            Zero Intervenção
-          </Badge>
-          <Badge variant="secondary" className="bg-pink-500/20 text-pink-400 border-pink-500/30">
-            <Mic2 className="w-3 h-3 mr-1" />
-            Voz Clonada
-          </Badge>
-          <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-            <Crown className="w-3 h-3 mr-1" />
-            Oscar IA
-          </Badge>
+          <BrandBadge tone="primary" icon={<Brain className="w-3 h-3" />}>IA Autogerenciável</BrandBadge>
+          <BrandBadge tone="neutral" icon={<Wifi className="w-3 h-3" />}>Início Automático</BrandBadge>
+          <BrandBadge tone="success" icon={<Server className="w-3 h-3" />}>Zero Intervenção</BrandBadge>
+          <BrandBadge tone="neutral" icon={<Mic2 className="w-3 h-3" />}>Voz neural</BrandBadge>
+          <BrandBadge tone="primary" icon={<Activity className="w-3 h-3" />}>Performance 99.7%</BrandBadge>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </GradientPanel>
   );
 };
 
