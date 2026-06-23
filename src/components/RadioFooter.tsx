@@ -8,7 +8,7 @@ import {
   Settings,
   Brain,
   Wifi,
-  Crown
+  ShieldCheck
 } from 'lucide-react';
 
 const RadioFooter: React.FC = () => {
@@ -20,20 +20,20 @@ const RadioFooter: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <p className="text-sm text-gray-400">
-              © 2024 Rádio Trem AI. Sistema Oscar de IA - Nível Mundial Autogerenciável.
+              © 2024 Rádio Trem AI. Sistema de IA autogerenciável.
             </p>
             <div className="flex space-x-2">
               <Badge variant="outline" className="border-purple-500/50 text-purple-400">
                 <Brain className="w-3 h-3 mr-1" />
-                100% IA Oscar
+                IA autogerenciável
               </Badge>
               <Badge variant="outline" className="border-green-500/50 text-green-400">
                 <Wifi className="w-3 h-3 mr-1" />
                 Auto-Start 24/7
               </Badge>
               <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
-                <Crown className="w-3 h-3 mr-1" />
-                TOP 1 MUNDIAL
+                <ShieldCheck className="w-3 h-3 mr-1" />
+                Sem ranking auditado
               </Badge>
             </div>
           </div>
@@ -56,11 +56,11 @@ const RadioFooter: React.FC = () => {
                 className="text-red-400 hover:text-red-300"
               >
                 <Settings className="w-4 h-4 mr-2" />
-                Admin Oscar
+                Admin
               </Button>
             </div>
             <p className="text-xs text-gray-500">
-              Sistema Oscar de Rádio IA Autogerenciável - Transmissão Premium 24/7
+              Sistema de rádio IA autogerenciável - Transmissão 24/7
             </p>
           </div>
         </div>

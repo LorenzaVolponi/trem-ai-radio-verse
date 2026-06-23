@@ -21,8 +21,7 @@ import {
   Pause,
   Volume2,
   Headphones,
-  Trophy,
-  Crown,
+  ShieldCheck,
   Star
 } from 'lucide-react';
 import AutoStreamingEngine from './AutoStreamingEngine';
@@ -32,6 +31,7 @@ import GlobalRadioMonitor from './GlobalRadioMonitor';
 import AdvancedAudioEngine from './AdvancedAudioEngine';
 import ProgramScheduler from './ProgramScheduler';
 import AdvancedAnalytics from './AdvancedAnalytics';
+import { demoMode, fetchTransmissionMetrics } from '@/services/metrics';
 
 const RadioDashboard = () => {
   const { logout, user } = useAuth();
@@ -40,20 +40,33 @@ const RadioDashboard = () => {
     aiEngine: true,
     voiceCloning: true,
     musicGeneration: true,
-    totalListeners: 12847,
-    uptime: 99.98
+    totalListeners: 0,
+    uptime: 0
   });
 
   // System monitoring
   useEffect(() => {
-    const interval = setInterval(() => {
+    let active = true;
+
+    const updateMetrics = async () => {
+      const metrics = await fetchTransmissionMetrics();
+      if (!active) return;
+
       setSystemStatus(prev => ({
         ...prev,
-        totalListeners: prev.totalListeners + Math.floor(Math.random() * 20) - 10,
+        streaming: metrics.status === 'online',
+        totalListeners: metrics.listeners,
+        uptime: Number(((metrics.uptimeSeconds / 86400) * 100).toFixed(2)),
       }));
-    }, 5000);
+    };
 
-    return () => clearInterval(interval);
+    updateMetrics();
+    const interval = setInterval(updateMetrics, 5000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -80,21 +93,22 @@ const RadioDashboard = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold gradient-text">Rádio Trem AI - Dashboard Admin</h1>
-                <p className="text-sm text-gray-400">Sistema Top 1 Mundial - Autogerenciável 24/7</p>
+                <p className="text-sm text-gray-400">Sistema autogerenciável 24/7</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
               {/* System Status Indicators */}
               <div className="hidden md:flex items-center space-x-2">
-                <Badge variant="outline" className="border-green-500/50 text-green-400 animate-pulse">
-                  <Crown className="w-3 h-3 mr-1" />
-                  TOP 1 MUNDIAL
+                <Badge variant="outline" className="border-slate-400/50 text-slate-300">
+                  <ShieldCheck className="w-3 h-3 mr-1" />
+                  Sem ranking auditado
                 </Badge>
-                <Badge variant="outline" className="border-radio-purple/50 text-radio-purple">
-                  <Trophy className="w-3 h-3 mr-1" />
-                  OSCAR IA
-                </Badge>
+                {demoMode && (
+                  <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
+                    Demonstração
+                  </Badge>
+                )}
               </div>
               
               <div className="flex items-center space-x-2 px-4 py-2 glass-effect rounded-full">
@@ -176,8 +190,8 @@ const RadioDashboard = () => {
                   <Star className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Ranking Mundial</p>
-                  <p className="text-xl font-bold text-yellow-400">#1</p>
+                  <p className="text-sm text-gray-400">Ranking</p>
+                  <p className="text-xl font-bold text-gray-300">Não auditado</p>
                 </div>
               </div>
             </CardContent>
@@ -253,16 +267,16 @@ const RadioDashboard = () => {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex items-center space-x-4">
               <p className="text-sm text-gray-400">
-                © 2024 Rádio Trem AI. Sistema Top 1 Mundial - Oscar de Melhor IA de Rádio.
+                © 2024 Rádio Trem AI. Sistema de rádio IA autogerenciável.
               </p>
               <div className="flex space-x-2">
                 <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
-                  <Crown className="w-3 h-3 mr-1" />
-                  TOP 1 BRASIL
+                  <ShieldCheck className="w-3 h-3 mr-1" />
+                  Sem ranking auditado
                 </Badge>
                 <Badge variant="outline" className="border-radio-purple/50 text-radio-purple">
-                  <Trophy className="w-3 h-3 mr-1" />
-                  OSCAR IA
+                  <Star className="w-3 h-3 mr-1" />
+                  Reconhecimento não informado
                 </Badge>
               </div>
             </div>

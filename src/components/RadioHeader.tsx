@@ -9,15 +9,15 @@ import {
   Settings,
   LogIn,
   Headphones,
-  Crown,
-  Trophy
+  ShieldCheck
 } from 'lucide-react';
 
 interface RadioHeaderProps {
   currentListeners: number;
+  isDemo?: boolean;
 }
 
-const RadioHeader: React.FC<RadioHeaderProps> = ({ currentListeners }) => {
+const RadioHeader: React.FC<RadioHeaderProps> = ({ currentListeners, isDemo = false }) => {
   const navigate = useNavigate();
 
   return (
@@ -35,21 +35,22 @@ const RadioHeader: React.FC<RadioHeaderProps> = ({ currentListeners }) => {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
                 Rádio Trem AI
               </h1>
-              <p className="text-sm text-gray-400">Sistema Autogerenciável Oscar de IA - Transmissão 24/7</p>
+              <p className="text-sm text-gray-400">Sistema Autogerenciável de IA - Transmissão 24/7</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
             {/* System Status Indicators */}
             <div className="hidden md:flex items-center space-x-2">
-              <Badge variant="outline" className="border-green-500/50 text-green-400 animate-pulse">
-                <Crown className="w-3 h-3 mr-1" />
-                TOP 1 MUNDIAL
+              <Badge variant="outline" className="border-slate-400/50 text-slate-300">
+                <ShieldCheck className="w-3 h-3 mr-1" />
+                Sem ranking auditado
               </Badge>
-              <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
-                <Trophy className="w-3 h-3 mr-1" />
-                OSCAR IA
-              </Badge>
+              {isDemo && (
+                <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
+                  Demonstração
+                </Badge>
+              )}
               <div className="flex items-center space-x-1 px-2 py-1 backdrop-blur-md bg-white/10 rounded-full">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-xs text-gray-300">AI Engine</span>

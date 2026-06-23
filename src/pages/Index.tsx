@@ -11,9 +11,10 @@ import PlaylistQueue from '@/components/PlaylistQueue';
 import RealTimeStats from '@/components/RealTimeStats';
 import AdminAccessCard from '@/components/AdminAccessCard';
 import RadioFooter from '@/components/RadioFooter';
+import { demoMode, fetchTransmissionMetrics } from '@/services/metrics';
 
 const Index = () => {
-  const [currentListeners, setCurrentListeners] = useState(2847);
+  const [currentListeners, setCurrentListeners] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [currentTrack, setCurrentTrack] = useState({
     title: "Voz do Amanhã Premium",
@@ -26,30 +27,41 @@ const Index = () => {
     aiEngine: 'online',
     streaming: 'optimal',
     voiceCloning: 'active',
-    musicGeneration: 'generating'
+    musicGeneration: 'standby'
   });
+  const [isDemoMetrics, setIsDemoMetrics] = useState(demoMode);
   
   const { isAuthenticated } = useAuth();
 
   // Real-time listeners and system monitoring
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentListeners(prev => prev + Math.floor(Math.random() * 20) - 10);
-      setAudioLevel(Math.random() * 100);
-      
-      // Update track progress
+    let active = true;
+
+    const updateMetrics = async () => {
+      const metrics = await fetchTransmissionMetrics();
+      if (!active) return;
+
+      setCurrentListeners(metrics.listeners);
+      setAudioLevel(metrics.audioLevel);
+      setIsDemoMetrics(metrics.isDemo);
+      setSystemStatus(prev => ({
+        ...prev,
+        streaming: metrics.status === 'online' ? 'optimal' : metrics.status,
+        musicGeneration: metrics.musicGeneration
+      }));
+
       setCurrentTrack(prev => ({
         ...prev,
         elapsed: prev.elapsed >= prev.duration ? 0 : prev.elapsed + 1
       }));
-      
-      // Simulate system status changes
-      setSystemStatus(prev => ({
-        ...prev,
-        musicGeneration: Math.random() > 0.7 ? 'generating' : 'standby'
-      }));
-    }, 1000);
-    return () => clearInterval(interval);
+    };
+
+    updateMetrics();
+    const interval = setInterval(updateMetrics, 1000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, []);
 
   // Show admin dashboard if authenticated
@@ -69,7 +81,7 @@ const Index = () => {
       <div className="absolute top-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
-      <RadioHeader currentListeners={currentListeners} />
+      <RadioHeader currentListeners={currentListeners} isDemo={isDemoMetrics} />
       <AutoStartNotification />
 
       {/* Main Content */}
@@ -84,6 +96,7 @@ const Index = () => {
               isPlaying={isPlaying}
               onPlayPause={() => setIsPlaying(!isPlaying)}
               audioLevel={audioLevel}
+              isDemo={isDemoMetrics}
             />
 
             <StreamingInfoCard />
@@ -92,7 +105,7 @@ const Index = () => {
           {/* Enhanced Sidebar */}
           <div className="space-y-6">
             <PlaylistQueue />
-            <RealTimeStats currentListeners={currentListeners} />
+            <RealTimeStats currentListeners={currentListeners} isDemo={isDemoMetrics} />
             <AdminAccessCard />
           </div>
         </div>

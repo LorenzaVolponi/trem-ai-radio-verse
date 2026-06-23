@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { createVisualizerBars } from '@/services/metrics';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +13,7 @@ import {
   Radio,
   Wifi,
   Brain,
-  Crown,
+  ShieldCheck,
   Heart,
   Zap
 } from 'lucide-react';
@@ -27,13 +28,15 @@ interface LiveAudioPlayerProps {
   isPlaying: boolean;
   onPlayPause: () => void;
   audioLevel: number;
+  isDemo?: boolean;
 }
 
 const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
   currentTrack,
   isPlaying,
   onPlayPause,
-  audioLevel
+  audioLevel,
+  isDemo = false
 }) => {
   const [volume, setVolume] = useState(75);
   const [isMuted, setIsMuted] = useState(false);
@@ -43,7 +46,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
     if (isPlaying) {
       const interval = setInterval(() => {
         setVisualizerBars(prev => 
-          prev.map(() => Math.random() * 100)
+          createVisualizerBars(prev.length)
         );
       }, 100);
       return () => clearInterval(interval);
@@ -78,12 +81,17 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
             </Badge>
             <Badge variant="outline" className="border-purple-500/50 text-purple-400">
               <Brain className="w-3 h-3 mr-1" />
-              100% IA Oscar
+              IA autogerenciável
             </Badge>
-            <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
-              <Crown className="w-3 h-3 mr-1" />
-              TOP 1 MUNDIAL
+            <Badge variant="outline" className="border-slate-400/50 text-slate-300">
+              <ShieldCheck className="w-3 h-3 mr-1" />
+              Sem ranking auditado
             </Badge>
+            {isDemo && (
+              <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
+                Demonstração
+              </Badge>
+            )}
           </div>
           
           <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
@@ -169,7 +177,7 @@ const LiveAudioPlayer: React.FC<LiveAudioPlayerProps> = ({
             </div>
             <div className="flex items-center space-x-1">
               <Brain className="w-4 h-4 text-purple-400" />
-              <span>IA Oscar Performance: 99.7%</span>
+              <span>Performance IA demo: 99.7%</span>
             </div>
           </div>
         </div>
