@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthContext';
+import { useAuth } from '@/features/auth/components/AuthContext';
 import { Upload, Music, Loader2, ExternalLink } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 

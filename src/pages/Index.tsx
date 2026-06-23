@@ -1,33 +1,24 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import LiveAudioPlayer from '@/components/LiveAudioPlayer';
-import AdminLogin from '@/components/AdminLogin';
-import RadioDashboard from '@/components/RadioDashboard';
-import RadioHeader from '@/components/RadioHeader';
-import AutoStartNotification from '@/components/AutoStartNotification';
-import StreamingInfoCard from '@/components/StreamingInfoCard';
-import PlaylistQueue from '@/components/PlaylistQueue';
-import RealTimeStats from '@/components/RealTimeStats';
-import AdminAccessCard from '@/components/AdminAccessCard';
-import RadioFooter from '@/components/RadioFooter';
+import { useAuth } from '@/features/auth/components/MockAuthContext';
+import LiveAudioPlayer from '@/features/radio/components/LiveAudioPlayer';
+import AdminLogin from '@/features/admin/components/AdminLogin';
+import RadioDashboard from '@/features/admin/components/RadioDashboard';
+import RadioHeader from '@/components/brand/RadioHeader';
+import AutoStartNotification from '@/features/landing/components/AutoStartNotification';
+import StreamingInfoCard from '@/features/landing/components/StreamingInfoCard';
+import PlaylistQueue from '@/features/radio/components/PlaylistQueue';
+import RealTimeStats from '@/features/analytics/components/RealTimeStats';
+import AdminAccessCard from '@/features/landing/components/AdminAccessCard';
+import RadioFooter from '@/components/brand/RadioFooter';
+import { INITIAL_LISTENER_COUNT, initialSystemStatus, initialTrack } from '@/features/landing/mockData';
 
 const Index = () => {
-  const [currentListeners, setCurrentListeners] = useState(2847);
+  const [currentListeners, setCurrentListeners] = useState(INITIAL_LISTENER_COUNT);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [currentTrack, setCurrentTrack] = useState({
-    title: "Voz do Amanhã Premium",
-    artist: "IA Vocal Elite",
-    duration: 255,
-    elapsed: 0
-  });
+  const [currentTrack, setCurrentTrack] = useState(initialTrack);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [systemStatus, setSystemStatus] = useState({
-    aiEngine: 'online',
-    streaming: 'optimal',
-    voiceCloning: 'active',
-    musicGeneration: 'generating'
-  });
+  const [systemStatus, setSystemStatus] = useState(initialSystemStatus);
   
   const { isAuthenticated } = useAuth();
 

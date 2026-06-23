@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthContext';
+import { useAuth } from '@/features/auth/components/AuthContext';
 import { 
   Music, 
   Play, 

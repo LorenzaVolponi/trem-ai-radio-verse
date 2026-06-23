@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthContext';
+import { useAuth } from '@/features/auth/components/AuthContext';
 import { 
   Mic, 
   Upload, 

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from '@/components/auth/AuthContext';
+import { useAuth } from '@/features/auth/components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Radio, Loader2, Mail, Lock, User } from 'lucide-react';
 
